@@ -5,4 +5,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   loadBoard: () => ipcRenderer.invoke('load-board'),
   saveBoard: (data) => ipcRenderer.invoke('save-board', data),
   getModels: () => ipcRenderer.invoke('get-models'),
+  executeTask: (params) => ipcRenderer.invoke('execute-task', params),
 })

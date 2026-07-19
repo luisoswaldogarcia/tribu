@@ -14,6 +14,7 @@ export const defaultAgents: Agent[] = [
     avatar: '🧙',
     model: 'deepseek-3.2',
     context: 'Asistente general del sistema. Orquestador de tareas.',
+    executor: 'opencode',
   },
   {
     id: 'a2',
@@ -21,6 +22,7 @@ export const defaultAgents: Agent[] = [
     avatar: '🤖',
     model: 'claude-sonnet-4',
     context: 'Especialista en UI/UX y pixel art. Crea componentes visuales.',
+    executor: 'kiro-cli',
   },
   {
     id: 'a3',
@@ -28,6 +30,7 @@ export const defaultAgents: Agent[] = [
     avatar: '🦊',
     model: 'claude-opus-4.5',
     context: 'Arquitecto de software. Diseña estructuras y APIs.',
+    executor: 'opencode',
   },
 ]
 

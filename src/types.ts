@@ -1,11 +1,14 @@
 export type Priority = 'alta' | 'media' | 'baja'
 
+export type Executor = 'opencode' | 'kiro-cli'
+
 export interface Agent {
   id: string
   name: string
   avatar: string
   model: string
   context: string
+  executor: Executor
 }
 
 export interface Task {
@@ -40,6 +43,7 @@ declare global {
       loadBoard: () => Promise<BoardData | null>
       saveBoard: (data: BoardData) => Promise<boolean>
       getModels: () => Promise<OpenCodeModel[]>
+      executeTask: (params: { agentName: string, model: string, context: string, taskTitle: string, taskDescription: string, executor: string }) => Promise<{ success: boolean, output?: string, error?: string }>
     }
   }
 }

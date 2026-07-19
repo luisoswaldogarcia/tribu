@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { Executor } from '../types'
 import { useAgents } from '../context/AgentContext'
 import { useModels } from '../context/ModelContext'
 import { getPixelAvatar } from './PixelAvatar'
@@ -16,11 +17,12 @@ export default function CreateAgentModal({ onClose }: Props) {
   const [avatar, setAvatar] = useState('🤖')
   const [model, setModel] = useState(models[0]?.id || '')
   const [context, setContext] = useState('')
+  const [executor, setExecutor] = useState<Executor>('opencode')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return
-    addAgent({ name: name.trim(), avatar, model, context: context.trim() })
+    addAgent({ name: name.trim(), avatar, model, context: context.trim(), executor })
     if (window.electronAPI) {
       window.electronAPI.notify('👤 Tribu - Nuevo agente', `"${name.trim()}" se unió a la tribu`)
     }
@@ -66,6 +68,31 @@ export default function CreateAgentModal({ onClose }: Props) {
               </option>
             ))}
           </select>
+          <label>Ejecutor</label>
+          <div className="executor-picker">
+            <button
+              type="button"
+              className={`executor-option${executor === 'opencode' ? ' selected' : ''}`}
+              onClick={() => setExecutor('opencode')}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <rect x="4" y="4" width="16" height="16" fill="currentColor" rx="3"/>
+                <rect x="8" y="8" width="8" height="8" fill="#1a1b23" rx="1"/>
+              </svg>
+              opencode CLI
+            </button>
+            <button
+              type="button"
+              className={`executor-option${executor === 'kiro-cli' ? ' selected' : ''}`}
+              onClick={() => setExecutor('kiro-cli')}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" fill="currentColor"/>
+                <circle cx="12" cy="12" r="4" fill="#1a1b23"/>
+              </svg>
+              kiro-cli
+            </button>
+          </div>
           <textarea
             value={context}
             onChange={(e) => setContext(e.target.value)}

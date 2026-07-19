@@ -2,6 +2,7 @@ const { app, BrowserWindow, Notification, ipcMain } = require('electron')
 const path = require('path')
 const fs = require('fs')
 const os = require('os')
+const { spawn } = require('child_process')
 
 const isDev = process.env.VITE_DEV_SERVER_URL
 const dataPath = path.join(app.getPath('userData'), 'tribu-data.json')
@@ -136,6 +137,56 @@ ipcMain.handle('save-board', (_event, data) => {
 
 ipcMain.handle('get-models', () => {
   return extractModels()
+})
+
+ipcMain.handle('execute-task', async (_event, { agentName, model, context, taskTitle, taskDescription, executor }) => {
+  const home = os.homedir()
+  const prompt = `Eres ${agentName}. Tu contexto: ${context}\n\nTarea: ${taskTitle}\n${taskDescription ? 'Descripción: ' + taskDescription : ''}\n\nResuelve esta tarea.'
+
+  return new Promise((resolve) => {
+    let cmd, args
+
+    if (executor === 'kiro-cli') {
+      cmd = 'kiro'
+      args = ['ask', '--model', model, prompt]
+    } else {
+      cmd = 'opencode'
+      args = ['--model', model, prompt]
+    }
+
+    const child = spawn(cmd, args, {
+      cwd: home,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      shell: true,
+      env: { ...process.env, HOME: home },
+    })
+
+    let output = ''
+    let error = ''
+
+    child.stdout.on('data', (data) => {
+      output += data.toString()
+    })
+
+    child.stderr.on('data', (data) => {
+      error += data.toString()
+    })
+
+    child.on('close', (code) => {
+      resolve({
+        success: code === 0,
+        output: output.trim(),
+        error: error.trim(),
+      })
+    })
+
+    child.on('error', (err) => {
+      resolve({
+        success: false,
+        error: err.message,
+      })
+    })
+  })
 })
 
 app.whenReady().then(createWindow)

@@ -4,8 +4,8 @@ import KanbanCard from '../components/KanbanCard'
 import type { Task, Agent } from '../types'
 
 const agents: Agent[] = [
-  { id: 'a1', name: 'Zeref', avatar: '🧙', model: 'deepseek-3.2', context: 'test' },
-  { id: 'a2', name: 'PixelBot', avatar: '🤖', model: 'gpt-4', context: 'test' },
+  { id: 'a1', name: 'Zeref', avatar: '🧙', model: 'deepseek-3.2', context: 'test', executor: 'opencode' },
+  { id: 'a2', name: 'PixelBot', avatar: '🤖', model: 'gpt-4', context: 'test', executor: 'kiro-cli' },
 ]
 
 const task: Task = {

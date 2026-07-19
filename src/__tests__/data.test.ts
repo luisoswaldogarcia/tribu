@@ -8,6 +8,7 @@ describe('data', () => {
       expect(agent.name).toBeTruthy()
       expect(agent.avatar).toBeTruthy()
       expect(agent.model).toBeTruthy()
+      expect(agent.executor).toBeTruthy()
       expect(agent.context).toBeTruthy()
     }
   })

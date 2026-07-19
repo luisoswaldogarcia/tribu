@@ -195,6 +195,78 @@ header h1 {
   margin-left: 0;
 }
 
+.card-execute-btn {
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.card-execute-btn:hover:not(:disabled) {
+  background: var(--accent-light);
+  transform: scale(1.1);
+}
+
+.card-execute-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card-running {
+  margin-top: 8px;
+  padding: 6px 8px;
+  background: rgba(108, 99, 255, 0.1);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--accent-light);
+}
+
+.card-output {
+  margin-top: 8px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  position: relative;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.card-output pre {
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.card-output-close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+}
+
+.card-output-close:hover {
+  color: var(--text);
+}
+
 /* FAB */
 .fab-group {
   position: fixed;
@@ -347,6 +419,14 @@ header h1 {
   font-family: monospace;
 }
 
+.agent-panel-executor {
+  font-size: 10px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: 500;
+}
+
 .agent-panel-context {
   font-size: 11px;
   color: var(--text-muted);
@@ -396,6 +476,37 @@ header h1 {
 .avatar-option.selected {
   border-color: var(--accent);
   background: var(--accent-bg);
+}
+
+.executor-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.executor-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.executor-option:hover {
+  border-color: var(--accent);
+}
+
+.executor-option.selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent-light);
+  font-weight: 600;
 }
 
 /* Modal */

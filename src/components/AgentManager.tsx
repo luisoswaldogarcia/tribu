@@ -23,6 +23,7 @@ export default function AgentManager({ onClose }: Props) {
             <div className="agent-panel-info">
               <strong>{agent.name}</strong>
               <span className="agent-panel-model">{agent.model}</span>
+              <span className="agent-panel-executor">{agent.executor}</span>
               <span className="agent-panel-context">{agent.context}</span>
             </div>
             <button
