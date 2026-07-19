@@ -15,8 +15,9 @@ describe('KanbanBoard', () => {
     expect(screen.getByText('Terminado')).toBeInTheDocument()
   })
 
-  it('renders a FAB button', () => {
+  it('renders FAB buttons', () => {
     renderWithProviders(<KanbanBoard />)
     expect(screen.getByText('+')).toBeInTheDocument()
+    expect(screen.getByText('👤')).toBeInTheDocument()
   })
 })

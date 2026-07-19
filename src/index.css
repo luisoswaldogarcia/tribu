@@ -228,6 +228,17 @@ header h1 {
   box-shadow: 0 6px 20px rgba(108, 99, 255, 0.6);
 }
 
+.fab-agent {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 22px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.fab-agent:hover {
+  background: var(--surface-hover);
+}
+
 /* Layout */
 .app-body {
   flex: 1;
@@ -353,43 +364,6 @@ header h1 {
 
 .agent-remove-btn:hover {
   background: rgba(255, 107, 107, 0.15);
-}
-
-.agent-panel-form {
-  padding: 16px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.agent-panel-form h3 {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.agent-panel-form input,
-.agent-panel-form select,
-.agent-panel-form textarea {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px 10px;
-  color: var(--text);
-  font-size: 13px;
-  font-family: inherit;
-}
-
-.agent-panel-form input:focus,
-.agent-panel-form select:focus,
-.agent-panel-form textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
-.agent-panel-form textarea {
-  resize: vertical;
 }
 
 .avatar-picker {

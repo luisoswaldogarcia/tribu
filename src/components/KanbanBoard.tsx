@@ -4,6 +4,7 @@ import { initialColumns, getColumnName } from '../data'
 import { useAgents } from '../context/AgentContext'
 import KanbanColumn from './KanbanColumn'
 import CreateTaskModal from './CreateTaskModal'
+import CreateAgentModal from './CreateAgentModal'
 
 function generateId(): string {
   return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
@@ -19,6 +20,7 @@ export default function KanbanBoard() {
   const { agents, setPersistedAgents } = useAgents()
   const [columns, setColumns] = useState<Column[]>(initialColumns)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showCreateAgent, setShowCreateAgent] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -132,6 +134,7 @@ export default function KanbanBoard() {
         ))}
       </div>
       <div className="fab-group">
+        <button className="fab fab-agent" onClick={() => setShowCreateAgent(true)} title="Agregar agente">👤</button>
         <button className="fab" onClick={() => setShowCreateModal(true)} title="Nueva tarea">+</button>
       </div>
       {showCreateModal && (
@@ -139,6 +142,9 @@ export default function KanbanBoard() {
           onClose={() => setShowCreateModal(false)}
           onCreate={handleCreate}
         />
+      )}
+      {showCreateAgent && (
+        <CreateAgentModal onClose={() => setShowCreateAgent(false)} />
       )}
     </>
   )
