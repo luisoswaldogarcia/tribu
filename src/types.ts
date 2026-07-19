@@ -4,6 +4,7 @@ export interface Agent {
   id: string
   name: string
   avatar: string
+  model: string
   context: string
 }
 

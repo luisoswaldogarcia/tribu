@@ -21,18 +21,21 @@ export const defaultAgents: Agent[] = [
     id: 'a1',
     name: 'Zeref',
     avatar: '🧙',
+    model: 'deepseek-3.2',
     context: 'Asistente general del sistema. Orquestador de tareas.',
   },
   {
     id: 'a2',
     name: 'PixelBot',
     avatar: '🤖',
+    model: 'claude-sonnet-4',
     context: 'Especialista en UI/UX y pixel art. Crea componentes visuales.',
   },
   {
     id: 'a3',
     name: 'Nyx',
     avatar: '🦊',
+    model: 'claude-opus-4.5',
     context: 'Arquitecto de software. Diseña estructuras y APIs.',
   },
 ]

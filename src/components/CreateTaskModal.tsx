@@ -12,13 +12,14 @@ export default function CreateTaskModal({ onClose, onCreate }: Props) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [selectedAgentId, setSelectedAgentId] = useState(agents[0]?.id || '')
-  const [model, setModel] = useState(opencodeModels[0]?.id || '')
+  const [model, setModel] = useState(agents[0]?.model || opencodeModels[0]?.id || '')
   const [context, setContext] = useState(agents[0]?.context || '')
 
   const handleAgentChange = (id: string) => {
     setSelectedAgentId(id)
     const agent = agents.find((a) => a.id === id)
     if (agent) {
+      setModel(agent.model)
       setContext(agent.context)
     }
   }

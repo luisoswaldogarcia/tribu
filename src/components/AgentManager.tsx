@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAgents } from '../context/AgentContext'
+import { opencodeModels } from '../data'
 
 interface Props {
   onClose: () => void
@@ -9,14 +10,16 @@ export default function AgentManager({ onClose }: Props) {
   const { agents, addAgent, removeAgent } = useAgents()
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState('🤖')
+  const [model, setModel] = useState(opencodeModels[0]?.id || '')
   const [context, setContext] = useState('')
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return
-    addAgent({ name: name.trim(), avatar, context: context.trim() })
+    addAgent({ name: name.trim(), avatar, model, context: context.trim() })
     setName('')
     setAvatar('🤖')
+    setModel(opencodeModels[0]?.id || '')
     setContext('')
   }
 
@@ -36,6 +39,7 @@ export default function AgentManager({ onClose }: Props) {
               <span className="agent-list-avatar">{agent.avatar}</span>
               <div className="agent-list-info">
                 <strong>{agent.name}</strong>
+                <span className="agent-list-model">{agent.model}</span>
                 <span className="agent-list-context">{agent.context}</span>
               </div>
               <button
@@ -77,6 +81,19 @@ export default function AgentManager({ onClose }: Props) {
                 </button>
               ))}
             </div>
+          </label>
+          <label>
+            Modelo por defecto
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+            >
+              {opencodeModels.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
             Contexto

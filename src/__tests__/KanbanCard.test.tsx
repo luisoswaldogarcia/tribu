@@ -4,8 +4,8 @@ import KanbanCard from '../components/KanbanCard'
 import type { Task, Agent } from '../types'
 
 const agents: Agent[] = [
-  { id: 'a1', name: 'Zeref', avatar: '🧙', context: 'test' },
-  { id: 'a2', name: 'PixelBot', avatar: '🤖', context: 'test' },
+  { id: 'a1', name: 'Zeref', avatar: '🧙', model: 'deepseek-3.2', context: 'test' },
+  { id: 'a2', name: 'PixelBot', avatar: '🤖', model: 'gpt-4', context: 'test' },
 ]
 
 const task: Task = {
