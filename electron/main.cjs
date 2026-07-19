@@ -2,7 +2,7 @@ const { app, BrowserWindow, Notification, ipcMain } = require('electron')
 const path = require('path')
 const fs = require('fs')
 const os = require('os')
-const { spawn } = require('child_process')
+const { spawn, execSync } = require('child_process')
 
 const isDev = process.env.VITE_DEV_SERVER_URL
 const dataPath = path.join(app.getPath('userData'), 'tribu-data.json')
@@ -88,13 +88,25 @@ function extractModels() {
     }
   }
 
+  try {
+    const output = execSync('opencode models 2>/dev/null', { timeout: 10000, encoding: 'utf-8' })
+    for (const line of output.trim().split('\n')) {
+      const id = line.trim()
+      if (id && !opencodeSeen.has(id)) {
+        opencodeSeen.add(id)
+        const name = id.includes('/') ? id.split('/').pop() : id
+        opencodeModels.push({ id, name: name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' ') })
+      }
+    }
+  } catch {}
+
   const kiroStatePath = path.join(os.homedir(), 'kiro-gateway', 'state.json')
   try {
     if (fs.existsSync(kiroStatePath)) {
       const state = JSON.parse(fs.readFileSync(kiroStatePath, 'utf-8'))
       const accounts = state.model_to_accounts || {}
       for (const modelId of Object.keys(accounts)) {
-        if (!kiroSeen.has(modelId)) {
+        if (modelId !== 'auto-kiro' && !kiroSeen.has(modelId)) {
           kiroSeen.add(modelId)
           const name = modelId.charAt(0).toUpperCase() + modelId.slice(1).replace(/-/g, ' ')
           kiroModels.push({ id: modelId, name })
@@ -103,16 +115,17 @@ function extractModels() {
     }
   } catch {}
 
-  if (kiroModels.length === 0) {
-    const fromOpencode = opencodeModels.map(m => ({
-      id: m.id.includes('/') ? m.id.split('/').pop() : m.id,
-      name: m.name,
-    }))
-    for (const m of fromOpencode) {
-      if (!kiroSeen.has(m.id)) {
-        kiroSeen.add(m.id)
-        kiroModels.push(m)
-      }
+  const hardcodedKiroModels = [
+    'auto', 'claude-sonnet-5', 'claude-opus-4.8', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna',
+    'claude-opus-4.7', 'claude-opus-4.6', 'claude-opus-4.5', 'claude-sonnet-4.6', 'claude-sonnet-4.5',
+    'claude-sonnet-4', 'claude-haiku-4.5', 'deepseek-3.2', 'glm-5', 'minimax-m2.1', 'minimax-m2.5',
+    'qwen3-coder-next',
+  ]
+  for (const id of hardcodedKiroModels) {
+    if (!kiroSeen.has(id)) {
+      kiroSeen.add(id)
+      const name = id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+      kiroModels.push({ id, name })
     }
   }
 
