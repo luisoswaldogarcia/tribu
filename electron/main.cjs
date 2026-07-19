@@ -171,7 +171,7 @@ ipcMain.handle('get-models', () => {
 
 ipcMain.handle('execute-task', async (_event, { agentName, model, context, taskTitle, taskDescription, executor }) => {
   const home = os.homedir()
-  const prompt = `Eres ${agentName}. Tu contexto: ${context}\n\nTarea: ${taskTitle}\n${taskDescription ? 'Descripción: ' + taskDescription : ''}\n\nResuelve esta tarea.'
+  const prompt = 'Eres ' + agentName + '. Tu contexto: ' + context + '\n\nTarea: ' + taskTitle + '\n' + (taskDescription ? 'Descripcion: ' + taskDescription : '') + '\n\nResuelve esta tarea.'
 
   return new Promise((resolve) => {
     let cmd, args
