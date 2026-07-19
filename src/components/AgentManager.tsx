@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAgents } from '../context/AgentContext'
-import { opencodeModels } from '../data'
+import { useModels } from '../context/ModelContext'
 
 interface Props {
   onClose: () => void
@@ -8,9 +8,10 @@ interface Props {
 
 export default function AgentManager({ onClose }: Props) {
   const { agents, addAgent, removeAgent } = useAgents()
+  const { models } = useModels()
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState('🤖')
-  const [model, setModel] = useState(opencodeModels[0]?.id || '')
+  const [model, setModel] = useState(models[0]?.id || '')
   const [context, setContext] = useState('')
 
   const handleAdd = (e: React.FormEvent) => {
@@ -19,7 +20,7 @@ export default function AgentManager({ onClose }: Props) {
     addAgent({ name: name.trim(), avatar, model, context: context.trim() })
     setName('')
     setAvatar('🤖')
-    setModel(opencodeModels[0]?.id || '')
+    setModel(models[0]?.id || '')
     setContext('')
   }
 
@@ -88,7 +89,7 @@ export default function AgentManager({ onClose }: Props) {
               value={model}
               onChange={(e) => setModel(e.target.value)}
             >
-              {opencodeModels.map((m) => (
+              {models.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.name}
                 </option>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAgents } from '../context/AgentContext'
-import { opencodeModels } from '../data'
+import { useModels } from '../context/ModelContext'
 
 interface Props {
   onClose: () => void
@@ -9,10 +9,11 @@ interface Props {
 
 export default function CreateTaskModal({ onClose, onCreate }: Props) {
   const { agents } = useAgents()
+  const { models } = useModels()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [selectedAgentId, setSelectedAgentId] = useState(agents[0]?.id || '')
-  const [model, setModel] = useState(agents[0]?.model || opencodeModels[0]?.id || '')
+  const [model, setModel] = useState(agents[0]?.model || models[0]?.id || '')
   const [context, setContext] = useState(agents[0]?.context || '')
 
   const handleAgentChange = (id: string) => {
@@ -76,7 +77,7 @@ export default function CreateTaskModal({ onClose, onCreate }: Props) {
               value={model}
               onChange={(e) => setModel(e.target.value)}
             >
-              {opencodeModels.map((m) => (
+              {models.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.name}
                 </option>

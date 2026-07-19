@@ -39,6 +39,7 @@ declare global {
       notify: (title: string, body: string) => void
       loadBoard: () => Promise<BoardData | null>
       saveBoard: (data: BoardData) => Promise<boolean>
+      getModels: () => Promise<OpenCodeModel[]>
     }
   }
 }

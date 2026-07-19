@@ -2,10 +2,15 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AgentProvider } from '../context/AgentContext'
+import { ModelProvider } from '../context/ModelContext'
 import CreateTaskModal from '../components/CreateTaskModal'
 
 function renderWithProviders(ui: React.ReactElement) {
-  return render(<AgentProvider>{ui}</AgentProvider>)
+  return render(
+    <AgentProvider>
+      <ModelProvider>{ui}</ModelProvider>
+    </AgentProvider>,
+  )
 }
 
 describe('CreateTaskModal', () => {

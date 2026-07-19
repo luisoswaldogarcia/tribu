@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { defaultAgents, initialColumns, getColumnName, opencodeModels } from '../data'
+import { defaultAgents, initialColumns, getColumnName, fallbackModels } from '../data'
 
 describe('data', () => {
   it('default agents have all required fields', () => {
@@ -29,9 +29,9 @@ describe('data', () => {
     expect(getColumnName('unknown')).toBe('unknown')
   })
 
-  it('opencodeModels has models', () => {
-    expect(opencodeModels.length).toBeGreaterThan(0)
-    for (const m of opencodeModels) {
+  it('fallbackModels has models', () => {
+    expect(fallbackModels.length).toBeGreaterThan(0)
+    for (const m of fallbackModels) {
       expect(m.id).toBeTruthy()
       expect(m.name).toBeTruthy()
     }
