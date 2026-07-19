@@ -1,10 +1,19 @@
 import type { Column, Agent, OpenCodeModel } from './types'
 
 export const opencodeModels: OpenCodeModel[] = [
-  { id: 'kiro-gateway/deepseek-3.2', name: 'DeepSeek 3.2' },
-  { id: 'kiro-gateway/claude-sonnet-4-5', name: 'Claude Sonnet 4.5' },
-  { id: 'kiro-gateway/claude-haiku-4-5', name: 'Claude Haiku 4.5' },
-  { id: 'kiro-gateway/claude-sonnet-4', name: 'Claude Sonnet 4' },
+  { id: 'auto-kiro', name: 'Auto Kiro' },
+  { id: 'deepseek-3.2', name: 'DeepSeek 3.2' },
+  { id: 'claude-haiku-4.5', name: 'Claude Haiku 4.5' },
+  { id: 'claude-sonnet-4', name: 'Claude Sonnet 4' },
+  { id: 'claude-sonnet-4.5', name: 'Claude Sonnet 4.5' },
+  { id: 'claude-sonnet-4.6', name: 'Claude Sonnet 4.6' },
+  { id: 'claude-opus-4.5', name: 'Claude Opus 4.5' },
+  { id: 'claude-opus-4.6', name: 'Claude Opus 4.6' },
+  { id: 'claude-opus-4.7', name: 'Claude Opus 4.7' },
+  { id: 'glm-5', name: 'GLM 5' },
+  { id: 'minimax-m2.1', name: 'MiniMax M2.1' },
+  { id: 'minimax-m2.5', name: 'MiniMax M2.5' },
+  { id: 'qwen3-coder-next', name: 'Qwen 3 Coder Next' },
 ]
 
 export const agents: Agent[] = [
