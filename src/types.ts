@@ -27,10 +27,16 @@ export interface OpenCodeModel {
   name: string
 }
 
+export interface BoardData {
+  columns: Column[]
+}
+
 declare global {
   interface Window {
     electronAPI?: {
       notify: (title: string, body: string) => void
+      loadBoard: () => Promise<BoardData | null>
+      saveBoard: (data: BoardData) => Promise<boolean>
     }
   }
 }

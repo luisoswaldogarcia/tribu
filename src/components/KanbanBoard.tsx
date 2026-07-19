@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import type { Column, Task, Priority } from '../types'
 import { initialColumns, agents, getColumnName } from '../data'
 import KanbanColumn from './KanbanColumn'
@@ -17,6 +17,26 @@ function inferPriority(): Priority {
 export default function KanbanBoard() {
   const [columns, setColumns] = useState<Column[]>(initialColumns)
   const [showModal, setShowModal] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (!window.electronAPI) return
+    window.electronAPI.loadBoard().then((data) => {
+      if (data?.columns) {
+        setColumns(data.columns)
+      }
+      setLoaded(true)
+    })
+  }, [])
+
+  const persist = useCallback((cols: Column[]) => {
+    if (!window.electronAPI) return
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => {
+      window.electronAPI?.saveBoard({ columns: cols })
+    }, 500)
+  }, [])
 
   const handleDrop = useCallback(
     (taskId: string, targetColumnId: string) => {
@@ -54,10 +74,11 @@ export default function KanbanBoard() {
           )
         }
 
+        persist(result)
         return result
       })
     },
-    [],
+    [persist],
   )
 
   const handleCreate = useCallback(
@@ -69,13 +90,15 @@ export default function KanbanBoard() {
         priority: inferPriority(),
         agents: [agentId],
       }
-      setColumns((prev) =>
-        prev.map((col) =>
+      setColumns((prev) => {
+        const next = prev.map((col) =>
           col.id === 'todo'
             ? { ...col, tasks: [...col.tasks, newTask] }
             : col,
-        ),
-      )
+        )
+        persist(next)
+        return next
+      })
       setShowModal(false)
 
       const agentName = agents.find((a) => a.id === agentId)?.name || 'Alguien'
@@ -86,8 +109,12 @@ export default function KanbanBoard() {
         )
       }
     },
-    [],
+    [persist],
   )
+
+  if (!loaded && window.electronAPI) {
+    return null
+  }
 
   return (
     <>
