@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { agents, initialColumns, getColumnName } from '../data'
+import { agents, initialColumns, getColumnName, opencodeModels } from '../data'
 
 describe('data', () => {
   it('agents have all required fields', () => {
@@ -7,7 +7,6 @@ describe('data', () => {
       expect(agent.id).toBeTruthy()
       expect(agent.name).toBeTruthy()
       expect(agent.avatar).toBeTruthy()
-      expect(agent.model).toBeTruthy()
       expect(agent.context).toBeTruthy()
     }
   })
@@ -29,11 +28,11 @@ describe('data', () => {
     expect(getColumnName('unknown')).toBe('unknown')
   })
 
-  it('all tasks have createdBy', () => {
-    for (const col of initialColumns) {
-      for (const task of col.tasks) {
-        expect(task.createdBy).toBeTruthy()
-      }
+  it('opencodeModels has models', () => {
+    expect(opencodeModels.length).toBeGreaterThan(0)
+    for (const m of opencodeModels) {
+      expect(m.id).toBeTruthy()
+      expect(m.name).toBeTruthy()
     }
   })
 })

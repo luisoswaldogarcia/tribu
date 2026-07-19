@@ -1,25 +1,28 @@
-import type { Column, Agent } from './types'
+import type { Column, Agent, OpenCodeModel } from './types'
+
+export const opencodeModels: OpenCodeModel[] = [
+  { id: 'kiro/claude-sonnet-4', name: 'Claude Sonnet 4' },
+  { id: 'kiro/claude-sonnet-4-5', name: 'Claude Sonnet 4.5' },
+  { id: 'kiro/claude-haiku-4-5', name: 'Claude Haiku 4.5' },
+]
 
 export const agents: Agent[] = [
   {
     id: 'a1',
     name: 'Zeref',
     avatar: '🧙',
-    model: 'deepseek-reasoner',
     context: 'Asistente general del sistema. Orquestador de tareas.',
   },
   {
     id: 'a2',
     name: 'PixelBot',
     avatar: '🤖',
-    model: 'gpt-4',
     context: 'Especialista en UI/UX y pixel art. Crea componentes visuales.',
   },
   {
     id: 'a3',
     name: 'Nyx',
     avatar: '🦊',
-    model: 'claude-3-opus',
     context: 'Arquitecto de software. Diseña estructuras y APIs.',
   },
 ]
@@ -45,21 +48,18 @@ export const initialColumns: Column[] = [
         description: 'Esquema inicial de tablas',
         priority: 'alta',
         agents: ['a1', 'a2'],
-        createdBy: 'a1',
       },
       {
         id: 't2',
         title: 'Configurar CI/CD',
         priority: 'media',
         agents: ['a3'],
-        createdBy: 'a3',
       },
       {
         id: 't3',
         title: 'Documentar API',
         priority: 'baja',
         agents: [],
-        createdBy: 'a1',
       },
     ],
     color: '#ff6b6b',
@@ -74,14 +74,12 @@ export const initialColumns: Column[] = [
         description: 'Autenticación con JWT',
         priority: 'alta',
         agents: ['a1'],
-        createdBy: 'a1',
       },
       {
         id: 't5',
         title: 'Crear componentes UI',
         priority: 'alta',
         agents: ['a2', 'a3'],
-        createdBy: 'a2',
       },
     ],
     color: '#ffd93d',
@@ -95,7 +93,6 @@ export const initialColumns: Column[] = [
         title: 'Repo inicial',
         priority: 'media',
         agents: ['a1'],
-        createdBy: 'a1',
       },
     ],
     color: '#6bcb77',

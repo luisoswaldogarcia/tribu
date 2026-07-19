@@ -8,6 +8,12 @@ function generateId(): string {
   return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
 }
 
+const priorities: Priority[] = ['alta', 'media', 'baja']
+
+function inferPriority(): Priority {
+  return priorities[Math.floor(Math.random() * priorities.length)]
+}
+
 export default function KanbanBoard() {
   const [columns, setColumns] = useState<Column[]>(initialColumns)
   const [showModal, setShowModal] = useState(false)
@@ -55,14 +61,13 @@ export default function KanbanBoard() {
   )
 
   const handleCreate = useCallback(
-    (title: string, description: string, priority: Priority, createdBy: string, _model: string, _context: string) => {
+    (title: string, description: string, agentId: string, _model: string, _context: string) => {
       const newTask: Task = {
         id: generateId(),
         title,
         description: description || undefined,
-        priority,
-        agents: [createdBy],
-        createdBy,
+        priority: inferPriority(),
+        agents: [agentId],
       }
       setColumns((prev) =>
         prev.map((col) =>
@@ -73,7 +78,7 @@ export default function KanbanBoard() {
       )
       setShowModal(false)
 
-      const agentName = agents.find((a) => a.id === createdBy)?.name || 'Alguien'
+      const agentName = agents.find((a) => a.id === agentId)?.name || 'Alguien'
       if (window.electronAPI) {
         window.electronAPI.notify(
           '📋 Tribu - Nueva tarea',

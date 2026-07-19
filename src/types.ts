@@ -4,7 +4,6 @@ export interface Agent {
   id: string
   name: string
   avatar: string
-  model: string
   context: string
 }
 
@@ -14,7 +13,6 @@ export interface Task {
   description?: string
   priority: Priority
   agents: string[]
-  createdBy: string
 }
 
 export interface Column {
@@ -22,6 +20,11 @@ export interface Column {
   title: string
   tasks: Task[]
   color: string
+}
+
+export interface OpenCodeModel {
+  id: string
+  name: string
 }
 
 declare global {

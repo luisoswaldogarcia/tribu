@@ -4,8 +4,8 @@ import KanbanCard from '../components/KanbanCard'
 import type { Task, Agent } from '../types'
 
 const agents: Agent[] = [
-  { id: 'a1', name: 'Zeref', avatar: '🧙', model: 'deepseek', context: 'test' },
-  { id: 'a2', name: 'PixelBot', avatar: '🤖', model: 'gpt-4', context: 'test' },
+  { id: 'a1', name: 'Zeref', avatar: '🧙', context: 'test' },
+  { id: 'a2', name: 'PixelBot', avatar: '🤖', context: 'test' },
 ]
 
 const task: Task = {
@@ -14,7 +14,6 @@ const task: Task = {
   description: 'A description',
   priority: 'alta',
   agents: ['a1', 'a2'],
-  createdBy: 'a1',
 }
 
 describe('KanbanCard', () => {
@@ -27,10 +26,5 @@ describe('KanbanCard', () => {
   it('shows priority label', () => {
     render(<KanbanCard task={task} agents={agents} />)
     expect(screen.getByText('🔥 Alta')).toBeInTheDocument()
-  })
-
-  it('shows creator with model', () => {
-    render(<KanbanCard task={task} agents={agents} />)
-    expect(screen.getByText(/Zeref.*deepseek/)).toBeInTheDocument()
   })
 })

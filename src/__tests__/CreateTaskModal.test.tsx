@@ -7,10 +7,15 @@ describe('CreateTaskModal', () => {
   it('renders all fields', () => {
     render(<CreateTaskModal onClose={vi.fn()} onCreate={vi.fn()} />)
     expect(screen.getByPlaceholderText('¿Qué hay que hacer?')).toBeInTheDocument()
-    expect(screen.getByText('Creado por')).toBeInTheDocument()
+    expect(screen.getByText('Agente')).toBeInTheDocument()
     expect(screen.getByText('Modelo')).toBeInTheDocument()
     expect(screen.getByText('Contexto / Instrucciones')).toBeInTheDocument()
-    expect(screen.getByText('Prioridad')).toBeInTheDocument()
+  })
+
+  it('does not show prioridad or creado por', () => {
+    render(<CreateTaskModal onClose={vi.fn()} onCreate={vi.fn()} />)
+    expect(screen.queryByText('Prioridad')).not.toBeInTheDocument()
+    expect(screen.queryByText('Creado por')).not.toBeInTheDocument()
   })
 
   it('calls onCreate with all fields on submit', async () => {
@@ -25,7 +30,6 @@ describe('CreateTaskModal', () => {
     expect(onCreate).toHaveBeenCalledWith(
       'Mi tarea',
       'Una descripción',
-      'media',
       expect.any(String),
       expect.any(String),
       expect.any(String),

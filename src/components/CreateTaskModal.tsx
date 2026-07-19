@@ -1,25 +1,22 @@
 import { useState } from 'react'
-import type { Priority } from '../types'
-import { agents as allAgents } from '../data'
+import { agents as allAgents, opencodeModels } from '../data'
 
 interface Props {
   onClose: () => void
-  onCreate: (title: string, description: string, priority: Priority, createdBy: string, model: string, context: string) => void
+  onCreate: (title: string, description: string, agentId: string, model: string, context: string) => void
 }
 
 export default function CreateTaskModal({ onClose, onCreate }: Props) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [priority, setPriority] = useState<Priority>('media')
   const [selectedAgentId, setSelectedAgentId] = useState(allAgents[0]?.id || '')
-  const [model, setModel] = useState(allAgents[0]?.model || '')
+  const [model, setModel] = useState(opencodeModels[0]?.id || '')
   const [context, setContext] = useState(allAgents[0]?.context || '')
 
   const handleAgentChange = (id: string) => {
     setSelectedAgentId(id)
     const agent = allAgents.find((a) => a.id === id)
     if (agent) {
-      setModel(agent.model)
       setContext(agent.context)
     }
   }
@@ -27,7 +24,7 @@ export default function CreateTaskModal({ onClose, onCreate }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim() || !selectedAgentId) return
-    onCreate(title.trim(), description.trim(), priority, selectedAgentId, model, context)
+    onCreate(title.trim(), description.trim(), selectedAgentId, model, context)
   }
 
   return (
@@ -58,7 +55,7 @@ export default function CreateTaskModal({ onClose, onCreate }: Props) {
             />
           </label>
           <label>
-            Creado por
+            Agente
             <select
               value={selectedAgentId}
               onChange={(e) => handleAgentChange(e.target.value)}
@@ -72,12 +69,16 @@ export default function CreateTaskModal({ onClose, onCreate }: Props) {
           </label>
           <label>
             Modelo
-            <input
-              type="text"
+            <select
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              placeholder="ej. gpt-4, deepseek, claude-3"
-            />
+            >
+              {opencodeModels.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
             Contexto / Instrucciones
@@ -87,17 +88,6 @@ export default function CreateTaskModal({ onClose, onCreate }: Props) {
               placeholder="¿Qué instrucciones tiene este agente?"
               rows={2}
             />
-          </label>
-          <label>
-            Prioridad
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value as Priority)}
-            >
-              <option value="alta">🔥 Alta</option>
-              <option value="media">📋 Media</option>
-              <option value="baja">🟢 Baja</option>
-            </select>
           </label>
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={onClose}>
