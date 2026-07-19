@@ -1,10 +1,16 @@
 import { useState, useCallback } from 'react'
-import type { Column, Task } from '../types'
+import type { Column, Task, Priority } from '../types'
 import { initialColumns, agents, getColumnName } from '../data'
 import KanbanColumn from './KanbanColumn'
+import CreateTaskModal from './CreateTaskModal'
+
+function generateId(): string {
+  return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+}
 
 export default function KanbanBoard() {
   const [columns, setColumns] = useState<Column[]>(initialColumns)
+  const [showModal, setShowModal] = useState(false)
 
   const handleDrop = useCallback(
     (taskId: string, targetColumnId: string) => {
@@ -34,12 +40,11 @@ export default function KanbanBoard() {
           mt.agents.length > 0
             ? agents.find((a) => a.id === mt.agents[0])?.name || 'Alguien'
             : 'Alguien'
-        const taskTitle = mt.title
 
         if (window.electronAPI) {
           window.electronAPI.notify(
             '🔄 Tribu - Tarea movida',
-            `${agentName} movió "${taskTitle}" de "${getColumnName(sourceColumnId)}" a "${getColumnName(targetColumnId)}"`,
+            `${agentName} movió "${mt.title}" de "${getColumnName(sourceColumnId)}" a "${getColumnName(targetColumnId)}"`,
           )
         }
 
@@ -49,16 +54,53 @@ export default function KanbanBoard() {
     [],
   )
 
+  const handleCreate = useCallback(
+    (title: string, description: string, priority: Priority) => {
+      const newTask: Task = {
+        id: generateId(),
+        title,
+        description: description || undefined,
+        priority,
+        agents: ['a1'],
+      }
+      setColumns((prev) =>
+        prev.map((col) =>
+          col.id === 'todo'
+            ? { ...col, tasks: [...col.tasks, newTask] }
+            : col,
+        ),
+      )
+      setShowModal(false)
+
+      if (window.electronAPI) {
+        window.electronAPI.notify(
+          '📋 Tribu - Nueva tarea',
+          `"${title}" creada en Por hacer`,
+        )
+      }
+    },
+    [],
+  )
+
   return (
-    <div className="board">
-      {columns.map((col) => (
-        <KanbanColumn
-          key={col.id}
-          column={col}
-          agents={agents}
-          onDrop={handleDrop}
+    <>
+      <div className="board">
+        {columns.map((col) => (
+          <KanbanColumn
+            key={col.id}
+            column={col}
+            agents={agents}
+            onDrop={handleDrop}
+          />
+        ))}
+      </div>
+      <button className="fab" onClick={() => setShowModal(true)}>+</button>
+      {showModal && (
+        <CreateTaskModal
+          onClose={() => setShowModal(false)}
+          onCreate={handleCreate}
         />
-      ))}
-    </div>
+      )}
+    </>
   )
 }
