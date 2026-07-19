@@ -134,8 +134,21 @@ export default function KanbanBoard() {
         ))}
       </div>
       <div className="fab-group">
-        <button className="fab fab-agent" onClick={() => setShowCreateAgent(true)} title="Agregar agente">👤</button>
-        <button className="fab" onClick={() => setShowCreateModal(true)} title="Nueva tarea">+</button>
+        <button className="fab fab-agent" onClick={() => setShowCreateAgent(true)} title="Agregar agente">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+            <rect x="8" y="6" width="16" height="16" fill="currentColor" rx="2" opacity="0.9"/>
+            <rect x="11" y="11" width="3" height="3" fill="#1a1b23" rx="0.5"/>
+            <rect x="18" y="11" width="3" height="3" fill="#1a1b23" rx="0.5"/>
+            <rect x="13" y="17" width="6" height="2" fill="#1a1b23" rx="0.5"/>
+            <rect x="10" y="22" width="12" height="8" fill="currentColor" rx="1" opacity="0.9"/>
+          </svg>
+        </button>
+        <button className="fab" onClick={() => setShowCreateModal(true)} title="Nueva tarea">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+            <rect x="14" y="4" width="4" height="24" fill="currentColor" rx="1"/>
+            <rect x="4" y="14" width="24" height="4" fill="currentColor" rx="1"/>
+          </svg>
+        </button>
       </div>
       {showCreateModal && (
         <CreateTaskModal

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAgents } from '../context/AgentContext'
 import { useModels } from '../context/ModelContext'
+import { getPixelAvatar } from './PixelAvatar'
 
 interface Props {
   onClose: () => void
@@ -49,7 +50,9 @@ export default function CreateAgentModal({ onClose }: Props) {
                 className={`avatar-option${avatar === a ? ' selected' : ''}`}
                 onClick={() => setAvatar(a)}
               >
-                {a}
+                <div style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {getPixelAvatar(a)}
+                </div>
               </button>
             ))}
           </div>

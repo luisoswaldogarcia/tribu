@@ -1,4 +1,5 @@
 import { useAgents } from '../context/AgentContext'
+import { getPixelAvatar } from './PixelAvatar'
 
 interface Props {
   onClose: () => void
@@ -16,7 +17,9 @@ export default function AgentManager({ onClose }: Props) {
       <div className="agent-panel-list">
         {agents.map((agent) => (
           <div key={agent.id} className="agent-panel-item">
-            <span className="agent-panel-avatar">{agent.avatar}</span>
+            <span className="agent-panel-avatar">
+              {getPixelAvatar(agent.avatar)}
+            </span>
             <div className="agent-panel-info">
               <strong>{agent.name}</strong>
               <span className="agent-panel-model">{agent.model}</span>

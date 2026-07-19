@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import type { Task, Agent } from '../types'
+import { getPixelAvatar } from './PixelAvatar'
 
 interface Props {
   task: Task
@@ -55,10 +56,11 @@ export default function KanbanCard({ task, agents }: Props) {
               <div
                 key={agent.id}
                 className="card-agent-avatar"
-                style={{ background: '#2a2b38' }}
                 title={`${agent.name}: ${agent.context}`}
               >
-                {agent.avatar}
+                <div style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {getPixelAvatar(agent.avatar)}
+                </div>
               </div>
             ))}
           </div>

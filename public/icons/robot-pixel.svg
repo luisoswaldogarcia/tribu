@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Antenna -->
+  <rect x="11" y="1" width="2" height="3" fill="#888"/>
+  <rect x="10" y="0" width="4" height="2" fill="#ff6b6b" rx="1"/>
+  <!-- Head -->
+  <rect x="6" y="4" width="12" height="10" fill="#8b83ff" rx="1"/>
+  <!-- Eyes -->
+  <rect x="8" y="7" width="3" height="3" fill="#1a1b23" rx="0"/>
+  <rect x="13" y="7" width="3" height="3" fill="#1a1b23" rx="0"/>
+  <!-- Mouth -->
+  <rect x="9" y="11" width="6" height="1" fill="#1a1b23"/>
+  <!-- Body -->
+  <rect x="7" y="14" width="10" height="7" fill="#8b83ff" rx="1"/>
+  <!-- Arms -->
+  <rect x="4" y="15" width="3" height="4" fill="#8b83ff" rx="1"/>
+  <rect x="17" y="15" width="3" height="4" fill="#8b83ff" rx="1"/>
+  <!-- Legs -->
+  <rect x="8" y="21" width="3" height="3" fill="#8b83ff" rx="1"/>
+  <rect x="13" y="21" width="3" height="3" fill="#8b83ff" rx="1"/>
+</svg>
