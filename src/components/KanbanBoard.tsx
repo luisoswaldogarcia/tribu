@@ -55,13 +55,14 @@ export default function KanbanBoard() {
   )
 
   const handleCreate = useCallback(
-    (title: string, description: string, priority: Priority) => {
+    (title: string, description: string, priority: Priority, createdBy: string, _model: string, _context: string) => {
       const newTask: Task = {
         id: generateId(),
         title,
         description: description || undefined,
         priority,
-        agents: ['a1'],
+        agents: [createdBy],
+        createdBy,
       }
       setColumns((prev) =>
         prev.map((col) =>
@@ -72,10 +73,11 @@ export default function KanbanBoard() {
       )
       setShowModal(false)
 
+      const agentName = agents.find((a) => a.id === createdBy)?.name || 'Alguien'
       if (window.electronAPI) {
         window.electronAPI.notify(
           '📋 Tribu - Nueva tarea',
-          `"${title}" creada en Por hacer`,
+          `${agentName} creó "${title}" en Por hacer`,
         )
       }
     },

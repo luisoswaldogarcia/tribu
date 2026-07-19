@@ -15,6 +15,7 @@ const priorityLabels: Record<string, string> = {
 export default function KanbanCard({ task, agents }: Props) {
   const [isDragging, setIsDragging] = useState(false)
   const taskAgents = agents.filter((a) => task.agents.includes(a.id))
+  const creator = agents.find((a) => a.id === task.createdBy)
 
   const handleDragStart = useCallback((e: React.DragEvent) => {
     e.dataTransfer.setData('text/task-id', task.id)
@@ -45,6 +46,13 @@ export default function KanbanCard({ task, agents }: Props) {
           {task.description}
         </div>
       )}
+      <div className="card-meta">
+        {creator && (
+          <span className="card-creator" title={creator.context}>
+            {creator.avatar} {creator.name} · {creator.model}
+          </span>
+        )}
+      </div>
       <div className="card-footer">
         <span className={`card-priority priority-${task.priority}`}>
           {priorityLabels[task.priority]}
@@ -56,7 +64,7 @@ export default function KanbanCard({ task, agents }: Props) {
                 key={agent.id}
                 className="card-agent-avatar"
                 style={{ background: '#2a2b38' }}
-                title={agent.name}
+                title={`${agent.name}: ${agent.context}`}
               >
                 {agent.avatar}
               </div>

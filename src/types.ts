@@ -4,6 +4,8 @@ export interface Agent {
   id: string
   name: string
   avatar: string
+  model: string
+  context: string
 }
 
 export interface Task {
@@ -12,6 +14,7 @@ export interface Task {
   description?: string
   priority: Priority
   agents: string[]
+  createdBy: string
 }
 
 export interface Column {

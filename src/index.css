@@ -133,7 +133,17 @@ header h1 {
   font-size: 14px;
   font-weight: 500;
   color: var(--text);
+  margin-bottom: 6px;
+}
+
+.card-meta {
+  font-size: 11px;
+  color: var(--text-muted);
   margin-bottom: 8px;
+}
+
+.card-creator {
+  cursor: help;
 }
 
 .card-footer {
