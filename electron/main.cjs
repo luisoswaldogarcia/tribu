@@ -59,48 +59,64 @@ function discoverOpencodeConfigs() {
 }
 
 function extractModels() {
-  const models = []
-  const seen = new Set()
+  const opencodeModels = []
+  const kiroModels = []
+  const opencodeSeen = new Set()
+  const kiroSeen = new Set()
   const configs = discoverOpencodeConfigs()
 
   for (const cfg of configs) {
-    if (cfg.providers) {
-      for (const [providerId, provider] of Object.entries(cfg.providers)) {
-        if (provider.models) {
-          for (const [modelId, meta] of Object.entries(provider.models)) {
-            const fullId = `${providerId}/${modelId}`
-            if (!seen.has(fullId)) {
-              seen.add(fullId)
-              models.push({ id: fullId, name: meta.name || modelId })
-            }
+    const providers = cfg.providers || cfg.provider || {}
+    for (const [providerId, provider] of Object.entries(providers)) {
+      if (provider.models) {
+        for (const [modelId, meta] of Object.entries(provider.models)) {
+          const fullId = `${providerId}/${modelId}`
+          if (!opencodeSeen.has(fullId)) {
+            opencodeSeen.add(fullId)
+            opencodeModels.push({ id: fullId, name: meta.name || modelId })
           }
         }
       }
     }
-    if (cfg.provider) {
-      for (const [providerId, provider] of Object.entries(cfg.provider)) {
-        if (provider.models) {
-          for (const [modelId, meta] of Object.entries(provider.models)) {
-            const fullId = `${providerId}/${modelId}`
-            if (!seen.has(fullId)) {
-              seen.add(fullId)
-              models.push({ id: fullId, name: meta.name || modelId })
-            }
-          }
-        }
-      }
+    if (cfg.model && !opencodeSeen.has(cfg.model)) {
+      opencodeSeen.add(cfg.model)
+      opencodeModels.push({ id: cfg.model, name: cfg.model.split('/').pop() || cfg.model })
     }
-    if (cfg.model && !seen.has(cfg.model)) {
-      seen.add(cfg.model)
-      models.push({ id: cfg.model, name: cfg.model.split('/').pop() || cfg.model })
-    }
-    if (cfg.small_model && !seen.has(cfg.small_model)) {
-      seen.add(cfg.small_model)
-      models.push({ id: cfg.small_model, name: cfg.small_model.split('/').pop() || cfg.small_model })
+    if (cfg.small_model && !opencodeSeen.has(cfg.small_model)) {
+      opencodeSeen.add(cfg.small_model)
+      opencodeModels.push({ id: cfg.small_model, name: cfg.small_model.split('/').pop() || cfg.small_model })
     }
   }
 
-  return models
+  const kiroStatePath = path.join(os.homedir(), 'kiro-gateway', 'state.json')
+  try {
+    if (fs.existsSync(kiroStatePath)) {
+      const state = JSON.parse(fs.readFileSync(kiroStatePath, 'utf-8'))
+      const accounts = state.model_to_accounts || {}
+      for (const modelId of Object.keys(accounts)) {
+        if (!kiroSeen.has(modelId)) {
+          kiroSeen.add(modelId)
+          const name = modelId.charAt(0).toUpperCase() + modelId.slice(1).replace(/-/g, ' ')
+          kiroModels.push({ id: modelId, name })
+        }
+      }
+    }
+  } catch {}
+
+  if (kiroModels.length === 0) {
+    const fromOpencode = opencodeModels.map(m => ({
+      id: m.id.includes('/') ? m.id.split('/').pop() : m.id,
+      name: m.name,
+    }))
+    for (const m of fromOpencode) {
+      if (!kiroSeen.has(m.id)) {
+        kiroSeen.add(m.id)
+        kiroModels.push(m)
+      }
+    }
+  }
+
+  return { opencode: opencodeModels, kiro: kiroModels }
 }
 
 function createWindow() {
@@ -136,7 +152,8 @@ ipcMain.handle('save-board', (_event, data) => {
 })
 
 ipcMain.handle('get-models', () => {
-  return extractModels()
+  const result = extractModels()
+  return result
 })
 
 ipcMain.handle('execute-task', async (_event, { agentName, model, context, taskTitle, taskDescription, executor }) => {

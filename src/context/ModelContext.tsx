@@ -1,16 +1,18 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-import type { OpenCodeModel } from '../types'
-import { fallbackModels } from '../data'
+import type { OpenCodeModel, Executor } from '../types'
+import { fallbackModels, kiroFallbackModels } from '../data'
 
 interface ModelContextValue {
   models: OpenCodeModel[]
   loading: boolean
+  getModelsForExecutor: (executor: Executor) => OpenCodeModel[]
 }
 
 const ModelContext = createContext<ModelContextValue | null>(null)
 
 export function ModelProvider({ children }: { children: ReactNode }) {
-  const [models, setModels] = useState<OpenCodeModel[]>(fallbackModels)
+  const [opencodeModels, setOpencodeModels] = useState<OpenCodeModel[]>(fallbackModels)
+  const [kiroModels, setKiroModels] = useState<OpenCodeModel[]>(kiroFallbackModels)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -19,15 +21,26 @@ export function ModelProvider({ children }: { children: ReactNode }) {
       return
     }
     window.electronAPI.getModels().then((result) => {
-      if (result && result.length > 0) {
-        setModels(result)
+      if (result) {
+        if (result.opencode && result.opencode.length > 0) {
+          setOpencodeModels(result.opencode)
+        }
+        if (result.kiro && result.kiro.length > 0) {
+          setKiroModels(result.kiro)
+        }
       }
       setLoading(false)
     })
   }, [])
 
+  const getModelsForExecutor = (executor: Executor): OpenCodeModel[] => {
+    return executor === 'kiro-cli' ? kiroModels : opencodeModels
+  }
+
+  const models = opencodeModels
+
   return (
-    <ModelContext.Provider value={{ models, loading }}>
+    <ModelContext.Provider value={{ models, loading, getModelsForExecutor }}>
       {children}
     </ModelContext.Provider>
   )

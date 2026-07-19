@@ -12,12 +12,20 @@ const avatars = ['🧙', '🤖', '🦊', '🐉', '👾', '🧝', '🧞', '🐱',
 
 export default function CreateAgentModal({ onClose }: Props) {
   const { addAgent } = useAgents()
-  const { models } = useModels()
+  const { getModelsForExecutor } = useModels()
+  const [executor, setExecutor] = useState<Executor>('opencode')
+  const [models, setModels] = useState(getModelsForExecutor('opencode'))
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState('🤖')
   const [model, setModel] = useState(models[0]?.id || '')
   const [context, setContext] = useState('')
-  const [executor, setExecutor] = useState<Executor>('opencode')
+
+  const handleExecutorChange = (e: Executor) => {
+    setExecutor(e)
+    const newModels = getModelsForExecutor(e)
+    setModels(newModels)
+    setModel(newModels[0]?.id || '')
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -73,7 +81,7 @@ export default function CreateAgentModal({ onClose }: Props) {
             <button
               type="button"
               className={`executor-option${executor === 'opencode' ? ' selected' : ''}`}
-              onClick={() => setExecutor('opencode')}
+              onClick={() => handleExecutorChange('opencode')}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <rect x="4" y="4" width="16" height="16" fill="currentColor" rx="3"/>
@@ -84,7 +92,7 @@ export default function CreateAgentModal({ onClose }: Props) {
             <button
               type="button"
               className={`executor-option${executor === 'kiro-cli' ? ' selected' : ''}`}
-              onClick={() => setExecutor('kiro-cli')}
+              onClick={() => handleExecutorChange('kiro-cli')}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" fill="currentColor"/>

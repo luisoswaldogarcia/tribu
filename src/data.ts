@@ -7,6 +7,12 @@ export const fallbackModels: OpenCodeModel[] = [
   { id: 'kiro-gateway/claude-sonnet-4', name: 'Claude Sonnet 4' },
 ]
 
+export const kiroFallbackModels: OpenCodeModel[] = [
+  { id: 'deepseek-3.2', name: 'DeepSeek 3.2' },
+  { id: 'claude-sonnet-4', name: 'Claude Sonnet 4' },
+  { id: 'claude-haiku-4.5', name: 'Claude Haiku 4.5' },
+]
+
 export const defaultAgents: Agent[] = [
   {
     id: 'a1',

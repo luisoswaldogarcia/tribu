@@ -42,7 +42,7 @@ declare global {
       notify: (title: string, body: string) => void
       loadBoard: () => Promise<BoardData | null>
       saveBoard: (data: BoardData) => Promise<boolean>
-      getModels: () => Promise<OpenCodeModel[]>
+      getModels: () => Promise<{ opencode: OpenCodeModel[], kiro: OpenCodeModel[] }>
       executeTask: (params: { agentName: string, model: string, context: string, taskTitle: string, taskDescription: string, executor: string }) => Promise<{ success: boolean, output?: string, error?: string }>
     }
   }

@@ -9,17 +9,21 @@ interface Props {
 
 export default function CreateTaskModal({ onClose, onCreate }: Props) {
   const { agents } = useAgents()
-  const { models } = useModels()
+  const { getModelsForExecutor } = useModels()
+  const firstAgent = agents[0]
+  const [filteredModels, setFilteredModels] = useState(getModelsForExecutor(firstAgent?.executor || 'opencode'))
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [selectedAgentId, setSelectedAgentId] = useState(agents[0]?.id || '')
-  const [model, setModel] = useState(agents[0]?.model || models[0]?.id || '')
+  const [model, setModel] = useState(agents[0]?.model || filteredModels[0]?.id || '')
   const [context, setContext] = useState(agents[0]?.context || '')
 
   const handleAgentChange = (id: string) => {
     setSelectedAgentId(id)
     const agent = agents.find((a) => a.id === id)
     if (agent) {
+      const newModels = getModelsForExecutor(agent.executor || 'opencode')
+      setFilteredModels(newModels)
       setModel(agent.model)
       setContext(agent.context)
     }
@@ -77,7 +81,7 @@ export default function CreateTaskModal({ onClose, onCreate }: Props) {
               value={model}
               onChange={(e) => setModel(e.target.value)}
             >
-              {models.map((m) => (
+              {filteredModels.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.name}
                 </option>
