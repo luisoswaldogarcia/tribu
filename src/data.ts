@@ -1,9 +1,10 @@
 import type { Column, Agent, OpenCodeModel } from './types'
 
 export const opencodeModels: OpenCodeModel[] = [
-  { id: 'kiro/claude-sonnet-4', name: 'Claude Sonnet 4' },
-  { id: 'kiro/claude-sonnet-4-5', name: 'Claude Sonnet 4.5' },
-  { id: 'kiro/claude-haiku-4-5', name: 'Claude Haiku 4.5' },
+  { id: 'kiro-gateway/deepseek-3.2', name: 'DeepSeek 3.2' },
+  { id: 'kiro-gateway/claude-sonnet-4-5', name: 'Claude Sonnet 4.5' },
+  { id: 'kiro-gateway/claude-haiku-4-5', name: 'Claude Haiku 4.5' },
+  { id: 'kiro-gateway/claude-sonnet-4', name: 'Claude Sonnet 4' },
 ]
 
 export const agents: Agent[] = [
