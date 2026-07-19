@@ -29,6 +29,7 @@ export interface OpenCodeModel {
 
 export interface BoardData {
   columns: Column[]
+  agents: Agent[]
 }
 
 declare global {

@@ -16,7 +16,7 @@ export const opencodeModels: OpenCodeModel[] = [
   { id: 'qwen3-coder-next', name: 'Qwen 3 Coder Next' },
 ]
 
-export const agents: Agent[] = [
+export const defaultAgents: Agent[] = [
   {
     id: 'a1',
     name: 'Zeref',

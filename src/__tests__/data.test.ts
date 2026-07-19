@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { agents, initialColumns, getColumnName, opencodeModels } from '../data'
+import { defaultAgents, initialColumns, getColumnName, opencodeModels } from '../data'
 
 describe('data', () => {
-  it('agents have all required fields', () => {
-    for (const agent of agents) {
+  it('default agents have all required fields', () => {
+    for (const agent of defaultAgents) {
       expect(agent.id).toBeTruthy()
       expect(agent.name).toBeTruthy()
       expect(agent.avatar).toBeTruthy()

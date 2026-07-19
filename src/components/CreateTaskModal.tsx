@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { agents as allAgents, opencodeModels } from '../data'
+import { useAgents } from '../context/AgentContext'
+import { opencodeModels } from '../data'
 
 interface Props {
   onClose: () => void
@@ -7,15 +8,16 @@ interface Props {
 }
 
 export default function CreateTaskModal({ onClose, onCreate }: Props) {
+  const { agents } = useAgents()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [selectedAgentId, setSelectedAgentId] = useState(allAgents[0]?.id || '')
+  const [selectedAgentId, setSelectedAgentId] = useState(agents[0]?.id || '')
   const [model, setModel] = useState(opencodeModels[0]?.id || '')
-  const [context, setContext] = useState(allAgents[0]?.context || '')
+  const [context, setContext] = useState(agents[0]?.context || '')
 
   const handleAgentChange = (id: string) => {
     setSelectedAgentId(id)
-    const agent = allAgents.find((a) => a.id === id)
+    const agent = agents.find((a) => a.id === id)
     if (agent) {
       setContext(agent.context)
     }
@@ -60,7 +62,7 @@ export default function CreateTaskModal({ onClose, onCreate }: Props) {
               value={selectedAgentId}
               onChange={(e) => handleAgentChange(e.target.value)}
             >
-              {allAgents.map((agent) => (
+              {agents.map((agent) => (
                 <option key={agent.id} value={agent.id}>
                   {agent.avatar} {agent.name}
                 </option>

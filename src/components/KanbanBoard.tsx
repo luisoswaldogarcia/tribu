@@ -1,8 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import type { Column, Task, Priority } from '../types'
-import { initialColumns, agents, getColumnName } from '../data'
+import { initialColumns, getColumnName } from '../data'
+import { useAgents } from '../context/AgentContext'
 import KanbanColumn from './KanbanColumn'
 import CreateTaskModal from './CreateTaskModal'
+import AgentManager from './AgentManager'
 
 function generateId(): string {
   return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
@@ -15,28 +17,31 @@ function inferPriority(): Priority {
 }
 
 export default function KanbanBoard() {
+  const { agents, setPersistedAgents } = useAgents()
   const [columns, setColumns] = useState<Column[]>(initialColumns)
-  const [showModal, setShowModal] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showAgentManager, setShowAgentManager] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!window.electronAPI) return
     window.electronAPI.loadBoard().then((data) => {
-      if (data?.columns) {
-        setColumns(data.columns)
+      if (data) {
+        if (data.columns) setColumns(data.columns)
+        if (data.agents) setPersistedAgents(data.agents)
       }
       setLoaded(true)
     })
-  }, [])
+  }, [setPersistedAgents])
 
   const persist = useCallback((cols: Column[]) => {
     if (!window.electronAPI) return
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => {
-      window.electronAPI?.saveBoard({ columns: cols })
+      window.electronAPI?.saveBoard({ columns: cols, agents })
     }, 500)
-  }, [])
+  }, [agents])
 
   const handleDrop = useCallback(
     (taskId: string, targetColumnId: string) => {
@@ -78,7 +83,7 @@ export default function KanbanBoard() {
         return result
       })
     },
-    [persist],
+    [agents, persist],
   )
 
   const handleCreate = useCallback(
@@ -99,7 +104,7 @@ export default function KanbanBoard() {
         persist(next)
         return next
       })
-      setShowModal(false)
+      setShowCreateModal(false)
 
       const agentName = agents.find((a) => a.id === agentId)?.name || 'Alguien'
       if (window.electronAPI) {
@@ -109,7 +114,7 @@ export default function KanbanBoard() {
         )
       }
     },
-    [persist],
+    [agents, persist],
   )
 
   if (!loaded && window.electronAPI) {
@@ -128,12 +133,18 @@ export default function KanbanBoard() {
           />
         ))}
       </div>
-      <button className="fab" onClick={() => setShowModal(true)}>+</button>
-      {showModal && (
+      <div className="fab-group">
+        <button className="fab fab-agent" onClick={() => setShowAgentManager(true)} title="Gestionar agentes">👤</button>
+        <button className="fab" onClick={() => setShowCreateModal(true)} title="Nueva tarea">+</button>
+      </div>
+      {showCreateModal && (
         <CreateTaskModal
-          onClose={() => setShowModal(false)}
+          onClose={() => setShowCreateModal(false)}
           onCreate={handleCreate}
         />
+      )}
+      {showAgentManager && (
+        <AgentManager onClose={() => setShowAgentManager(false)} />
       )}
     </>
   )

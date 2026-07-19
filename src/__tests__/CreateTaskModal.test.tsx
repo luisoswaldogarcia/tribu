@@ -1,11 +1,16 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { AgentProvider } from '../context/AgentContext'
 import CreateTaskModal from '../components/CreateTaskModal'
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<AgentProvider>{ui}</AgentProvider>)
+}
 
 describe('CreateTaskModal', () => {
   it('renders all fields', () => {
-    render(<CreateTaskModal onClose={vi.fn()} onCreate={vi.fn()} />)
+    renderWithProviders(<CreateTaskModal onClose={vi.fn()} onCreate={vi.fn()} />)
     expect(screen.getByPlaceholderText('¿Qué hay que hacer?')).toBeInTheDocument()
     expect(screen.getByText('Agente')).toBeInTheDocument()
     expect(screen.getByText('Modelo')).toBeInTheDocument()
@@ -13,7 +18,7 @@ describe('CreateTaskModal', () => {
   })
 
   it('does not show prioridad or creado por', () => {
-    render(<CreateTaskModal onClose={vi.fn()} onCreate={vi.fn()} />)
+    renderWithProviders(<CreateTaskModal onClose={vi.fn()} onCreate={vi.fn()} />)
     expect(screen.queryByText('Prioridad')).not.toBeInTheDocument()
     expect(screen.queryByText('Creado por')).not.toBeInTheDocument()
   })
@@ -21,7 +26,7 @@ describe('CreateTaskModal', () => {
   it('calls onCreate with all fields on submit', async () => {
     const user = userEvent.setup()
     const onCreate = vi.fn()
-    render(<CreateTaskModal onClose={vi.fn()} onCreate={onCreate} />)
+    renderWithProviders(<CreateTaskModal onClose={vi.fn()} onCreate={onCreate} />)
 
     await user.type(screen.getByPlaceholderText('¿Qué hay que hacer?'), 'Mi tarea')
     await user.type(screen.getByPlaceholderText('Detalles opcionales...'), 'Una descripción')
@@ -39,7 +44,7 @@ describe('CreateTaskModal', () => {
   it('calls onClose when clicking close button', async () => {
     const user = userEvent.setup()
     const onClose = vi.fn()
-    render(<CreateTaskModal onClose={onClose} onCreate={vi.fn()} />)
+    renderWithProviders(<CreateTaskModal onClose={onClose} onCreate={vi.fn()} />)
 
     await user.click(screen.getByText('✕'))
     expect(onClose).toHaveBeenCalledOnce()
