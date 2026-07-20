@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import CreateAgentModal from '../components/CreateAgentModal'
 import { AgentProvider } from '../context/AgentContext'
+import { AVATAR_POOL } from '../utils/avatarPool'
+import { prefixes } from '../utils/nameGenerator'
 
 function renderModal(onClose = vi.fn()) {
   return render(
@@ -18,9 +20,20 @@ describe('CreateAgentModal', () => {
     expect(screen.getByRole('heading', { name: 'Agregar agente' })).toBeInTheDocument()
   })
 
-  it('renders name input', () => {
+  it('renders name input with auto-generated fantasy name', () => {
     renderModal()
-    expect(screen.getByPlaceholderText('Nombre del agente')).toBeInTheDocument()
+    const input = screen.getByPlaceholderText('Nombre del agente') as HTMLInputElement
+    expect(input.value).toBeTruthy()
+    expect(input.value.length).toBeGreaterThan(0)
+    // Should start with a known prefix
+    const hasPrefix = prefixes.some((p) => input.value.startsWith(p))
+    expect(hasPrefix).toBe(true)
+  })
+
+  it('renders avatar picker with a pre-selected avatar', () => {
+    renderModal()
+    const selected = document.querySelector('.avatar-option.selected')
+    expect(selected).not.toBeNull()
   })
 
   it('renders mode selector with executor as default', () => {
@@ -38,17 +51,28 @@ describe('CreateAgentModal', () => {
     expect(screen.getByPlaceholderText('Instrucciones o contexto para el agente...')).toBeInTheDocument()
   })
 
-  it('does not submit with empty name', async () => {
+  it('does not submit when name is manually cleared', async () => {
     const onClose = vi.fn()
     renderModal(onClose)
+    const input = screen.getByPlaceholderText('Nombre del agente') as HTMLInputElement
+    await userEvent.clear(input)
     await userEvent.click(screen.getByRole('button', { name: 'Agregar agente' }))
     expect(onClose).not.toHaveBeenCalled()
   })
 
-  it('submits and calls onClose with valid name', async () => {
+  it('submits directly with auto-generated name (no manual input needed)', async () => {
     const onClose = vi.fn()
     renderModal(onClose)
-    await userEvent.type(screen.getByPlaceholderText('Nombre del agente'), 'NuevoBot')
+    await userEvent.click(screen.getByRole('button', { name: 'Agregar agente' }))
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('submits with user-overridden name', async () => {
+    const onClose = vi.fn()
+    renderModal(onClose)
+    const input = screen.getByPlaceholderText('Nombre del agente')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'MiAgente')
     await userEvent.click(screen.getByRole('button', { name: 'Agregar agente' }))
     expect(onClose).toHaveBeenCalledTimes(1)
   })
@@ -72,5 +96,11 @@ describe('CreateAgentModal', () => {
     expect(screen.getByText('deepseek')).toBeInTheDocument()
     expect(screen.getByText('claude')).toBeInTheDocument()
     expect(screen.getByText('gpt-4o')).toBeInTheDocument()
+  })
+
+  it('renders all avatar options from pool', () => {
+    renderModal()
+    const avatarButtons = document.querySelectorAll('.avatar-option')
+    expect(avatarButtons.length).toBe(AVATAR_POOL.length)
   })
 })

@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { useAgents } from '../context/AgentContext'
 import { getPixelAvatar } from './PixelAvatar'
+import { AVATAR_POOL } from '../utils/avatarPool'
+import { generateAgentName } from '../utils/nameGenerator'
+import { randomAvatar } from '../utils/randomAvatar'
 import type { AgentMode } from '../types'
 
 interface Props {
   onClose: () => void
 }
 
-const avatars = ['🧙', '🤖', '🦊', '🐉', '👾', '🧝', '🧞', '🐱', '🦉', '⭐', '🌈', '👑']
 const models = ['deepseek', 'claude', 'gpt-4o', 'gemini', 'llama']
 const modes: { value: AgentMode; label: string }[] = [
   { value: 'plan', label: '📐 Plan' },
@@ -16,9 +18,14 @@ const modes: { value: AgentMode; label: string }[] = [
 ]
 
 export default function CreateAgentModal({ onClose }: Props) {
-  const { addAgent } = useAgents()
-  const [name, setName] = useState('')
-  const [avatar, setAvatar] = useState('🤖')
+  const { agents, addAgent } = useAgents()
+
+  const [name, setName] = useState(() =>
+    generateAgentName(agents.map((a) => a.name))
+  )
+  const [avatar, setAvatar] = useState(() =>
+    randomAvatar(agents.map((a) => a.avatar))
+  )
   const [defaultMode, setDefaultMode] = useState<AgentMode>('executor')
   const [model, setModel] = useState('')
   const [context, setContext] = useState('')
@@ -58,7 +65,7 @@ export default function CreateAgentModal({ onClose }: Props) {
             />
           </label>
           <div className="avatar-picker">
-            {avatars.map((option) => (
+            {AVATAR_POOL.map((option) => (
               <button
                 key={option}
                 type="button"
