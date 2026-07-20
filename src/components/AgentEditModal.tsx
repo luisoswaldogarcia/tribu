@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useAgents } from '../context/AgentContext'
 import { getPixelAvatar } from './PixelAvatar'
-import type { AgentMode } from '../types'
+import type { Agent, AgentMode } from '../types'
 
 interface Props {
+  agent: Agent
   onClose: () => void
 }
 
@@ -15,27 +16,25 @@ const modes: { value: AgentMode; label: string }[] = [
   { value: 'advisor', label: '💡 Advisor' },
 ]
 
-export default function CreateAgentModal({ onClose }: Props) {
-  const { addAgent } = useAgents()
-  const [name, setName] = useState('')
-  const [avatar, setAvatar] = useState('🤖')
-  const [defaultMode, setDefaultMode] = useState<AgentMode>('executor')
-  const [model, setModel] = useState('')
-  const [context, setContext] = useState('')
+export default function AgentEditModal({ agent, onClose }: Props) {
+  const { updateAgent } = useAgents()
+  const [name, setName] = useState(agent.name)
+  const [avatar, setAvatar] = useState(agent.avatar)
+  const [defaultMode, setDefaultMode] = useState<AgentMode>(agent.defaultMode)
+  const [model, setModel] = useState(agent.model || '')
+  const [context, setContext] = useState(agent.context || '')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const trimmedName = name.trim()
     if (!trimmedName) return
-    addAgent({
+    updateAgent(agent.id, {
       name: trimmedName,
       avatar,
-      status: 'active',
       defaultMode,
       model: model || undefined,
       context: context.trim() || undefined,
     })
-    window.electronAPI?.notify('👤 Tribu - Nuevo agente', `"${trimmedName}" se unió a la tribu`)
     onClose()
   }
 
@@ -43,7 +42,7 @@ export default function CreateAgentModal({ onClose }: Props) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Agregar agente</h2>
+          <h2>Editar agente</h2>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
         <form onSubmit={handleSubmit}>
@@ -99,7 +98,7 @@ export default function CreateAgentModal({ onClose }: Props) {
           </label>
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn-primary">Agregar agente</button>
+            <button type="submit" className="btn-primary">Guardar</button>
           </div>
         </form>
       </div>

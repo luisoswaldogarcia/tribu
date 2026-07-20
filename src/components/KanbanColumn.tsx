@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import type { Column, Agent } from '../types'
+import type { Agent, Column } from '../types'
 import KanbanCard from './KanbanCard'
 
 interface Props {
@@ -11,30 +11,19 @@ interface Props {
 export default function KanbanColumn({ column, agents, onDrop }: Props) {
   const [isDragOver, setIsDragOver] = useState(false)
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-  }, [])
-
-  const handleDragEnter = useCallback(() => setIsDragOver(true), [])
-  const handleDragLeave = useCallback(() => setIsDragOver(false), [])
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragOver(false)
-      const taskId = e.dataTransfer.getData('text/task-id')
-      if (taskId) onDrop(taskId, column.id)
-    },
-    [column.id, onDrop],
-  )
+  const handleDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault()
+    setIsDragOver(false)
+    const taskId = event.dataTransfer.getData('text/task-id')
+    if (taskId) onDrop(taskId, column.id)
+  }, [column.id, onDrop])
 
   return (
     <div
       className={`column${isDragOver ? ' drag-over' : ''}`}
-      onDragOver={handleDragOver}
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
+      onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'move' }}
+      onDragEnter={() => setIsDragOver(true)}
+      onDragLeave={() => setIsDragOver(false)}
       onDrop={handleDrop}
     >
       <div className="column-header">
@@ -42,9 +31,7 @@ export default function KanbanColumn({ column, agents, onDrop }: Props) {
         <span className="column-title">{column.title}</span>
         <span className="column-count">{column.tasks.length}</span>
       </div>
-      {column.tasks.map((task) => (
-        <KanbanCard key={task.id} task={task} agents={agents} />
-      ))}
+      {column.tasks.map((task) => <KanbanCard key={task.id} task={task} agents={agents} />)}
     </div>
   )
 }

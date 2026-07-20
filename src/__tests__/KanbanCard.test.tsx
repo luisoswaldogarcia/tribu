@@ -4,8 +4,8 @@ import KanbanCard from '../components/KanbanCard'
 import type { Task, Agent } from '../types'
 
 const agents: Agent[] = [
-  { id: 'a1', name: 'Zeref', avatar: '🧙', model: 'deepseek-3.2', context: 'test', executor: 'opencode' },
-  { id: 'a2', name: 'PixelBot', avatar: '🤖', model: 'gpt-4', context: 'test', executor: 'kiro-cli' },
+  { id: 'a1', name: 'Zeref', avatar: '🧙', status: 'active', defaultMode: 'executor' },
+  { id: 'a2', name: 'PixelBot', avatar: '🤖', status: 'active', defaultMode: 'executor' },
 ]
 
 const task: Task = {
@@ -17,14 +17,18 @@ const task: Task = {
 }
 
 describe('KanbanCard', () => {
-  it('renders title and description', () => {
+  it('renders title, description and priority', () => {
     render(<KanbanCard task={task} agents={agents} />)
     expect(screen.getByText('Test task')).toBeInTheDocument()
     expect(screen.getByText('A description')).toBeInTheDocument()
+    expect(screen.getByText('🔥 Alta')).toBeInTheDocument()
   })
 
-  it('shows priority label', () => {
+  it('renders assigned agents without execution controls', () => {
     render(<KanbanCard task={task} agents={agents} />)
-    expect(screen.getByText('🔥 Alta')).toBeInTheDocument()
+    expect(screen.getByTitle('Zeref')).toBeInTheDocument()
+    expect(screen.getByTitle('PixelBot')).toBeInTheDocument()
+    expect(screen.queryByText('Ejecutar')).not.toBeInTheDocument()
+    expect(screen.queryByText('Chat')).not.toBeInTheDocument()
   })
 })

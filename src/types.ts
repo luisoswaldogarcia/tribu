@@ -1,14 +1,21 @@
 export type Priority = 'alta' | 'media' | 'baja'
 
-export type Executor = 'opencode' | 'kiro-cli'
+export type AgentStatus = 'active' | 'inactive' | 'busy' | 'waiting_input'
+
+export type AgentMode = 'plan' | 'executor' | 'advisor'
+
+export type AgentExecutor = 'opencode' | 'kiro-cli'
 
 export interface Agent {
   id: string
   name: string
   avatar: string
-  model: string
-  context: string
-  executor: Executor
+  status: AgentStatus
+  defaultMode: AgentMode
+  model?: string
+  executor?: AgentExecutor
+  context?: string
+  currentTaskId?: string
 }
 
 export interface Task {
@@ -26,11 +33,6 @@ export interface Column {
   color: string
 }
 
-export interface OpenCodeModel {
-  id: string
-  name: string
-}
-
 export interface BoardData {
   columns: Column[]
   agents: Agent[]
@@ -42,8 +44,6 @@ declare global {
       notify: (title: string, body: string) => void
       loadBoard: () => Promise<BoardData | null>
       saveBoard: (data: BoardData) => Promise<boolean>
-      getModels: () => Promise<{ opencode: OpenCodeModel[], kiro: OpenCodeModel[] }>
-      executeTask: (params: { agentName: string, model: string, context: string, taskTitle: string, taskDescription: string, executor: string }) => Promise<{ success: boolean, output?: string, error?: string }>
     }
   }
 }

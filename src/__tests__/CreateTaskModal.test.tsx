@@ -2,33 +2,23 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AgentProvider } from '../context/AgentContext'
-import { ModelProvider } from '../context/ModelContext'
 import CreateTaskModal from '../components/CreateTaskModal'
 
 function renderWithProviders(ui: React.ReactElement) {
-  return render(
-    <AgentProvider>
-      <ModelProvider>{ui}</ModelProvider>
-    </AgentProvider>,
-  )
+  return render(<AgentProvider>{ui}</AgentProvider>)
 }
 
 describe('CreateTaskModal', () => {
-  it('renders all fields', () => {
+  it('renders Kanban fields without AI configuration', () => {
     renderWithProviders(<CreateTaskModal onClose={vi.fn()} onCreate={vi.fn()} />)
     expect(screen.getByPlaceholderText('¿Qué hay que hacer?')).toBeInTheDocument()
-    expect(screen.getByText('Agente')).toBeInTheDocument()
-    expect(screen.getByText('Modelo')).toBeInTheDocument()
-    expect(screen.getByText('Contexto / Instrucciones')).toBeInTheDocument()
+    expect(screen.getByText('Agente (opcional)')).toBeInTheDocument()
+    expect(screen.getByText('Prioridad')).toBeInTheDocument()
+    expect(screen.queryByText('Modelo')).not.toBeInTheDocument()
+    expect(screen.queryByText('Contexto / Instrucciones')).not.toBeInTheDocument()
   })
 
-  it('does not show prioridad or creado por', () => {
-    renderWithProviders(<CreateTaskModal onClose={vi.fn()} onCreate={vi.fn()} />)
-    expect(screen.queryByText('Prioridad')).not.toBeInTheDocument()
-    expect(screen.queryByText('Creado por')).not.toBeInTheDocument()
-  })
-
-  it('calls onCreate with all fields on submit', async () => {
+  it('calls onCreate with base task fields on submit', async () => {
     const user = userEvent.setup()
     const onCreate = vi.fn()
     renderWithProviders(<CreateTaskModal onClose={vi.fn()} onCreate={onCreate} />)
@@ -37,13 +27,7 @@ describe('CreateTaskModal', () => {
     await user.type(screen.getByPlaceholderText('Detalles opcionales...'), 'Una descripción')
     await user.click(screen.getByText('Crear tarea'))
 
-    expect(onCreate).toHaveBeenCalledWith(
-      'Mi tarea',
-      'Una descripción',
-      expect.any(String),
-      expect.any(String),
-      expect.any(String),
-    )
+    expect(onCreate).toHaveBeenCalledWith('Mi tarea', 'Una descripción', '', 'media')
   })
 
   it('calls onClose when clicking close button', async () => {
