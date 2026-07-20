@@ -52,7 +52,7 @@ function applyEvent(columns: Column[], event: Parameters<typeof eventBus.publish
   return columns
 }
 
-export default function KanbanBoard({ onColumnsChange }: { onColumnsChange?: (columns: Column[]) => void }) {
+export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onColumnsChange?: (columns: Column[]) => void; highlightAgentId?: string | null }) {
   const { agents, setPersistedAgents } = useAgents()
   const [columns, setColumns] = useState<Column[]>(initialColumns)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -122,7 +122,7 @@ export default function KanbanBoard({ onColumnsChange }: { onColumnsChange?: (co
   return (
     <>
       <div className="board">
-        {columns.map((column) => <KanbanColumn key={column.id} column={column} agents={agents} onDrop={handleDrop} />)}
+        {columns.map((column) => <KanbanColumn key={column.id} column={column} agents={agents} onDrop={handleDrop} highlightAgentId={highlightAgentId} />)}
       </div>
       <div className="fab-group">
         <button className="fab fab-agent" onClick={() => setShowCreateAgent(true)} title="Agregar agente">👤</button>

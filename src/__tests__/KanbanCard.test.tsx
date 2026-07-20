@@ -31,4 +31,19 @@ describe('KanbanCard', () => {
     expect(screen.queryByText('Ejecutar')).not.toBeInTheDocument()
     expect(screen.queryByText('Chat')).not.toBeInTheDocument()
   })
+
+  it('applies card-highlighted class when highlightAgentId matches', () => {
+    const { container } = render(<KanbanCard task={task} agents={agents} highlightAgentId="a1" />)
+    expect(container.querySelector('.card-highlighted')).toBeInTheDocument()
+  })
+
+  it('does not apply card-highlighted class when highlightAgentId does not match', () => {
+    const { container } = render(<KanbanCard task={task} agents={agents} highlightAgentId="a99" />)
+    expect(container.querySelector('.card-highlighted')).not.toBeInTheDocument()
+  })
+
+  it('does not apply card-highlighted class when highlightAgentId is null', () => {
+    const { container } = render(<KanbanCard task={task} agents={agents} highlightAgentId={null} />)
+    expect(container.querySelector('.card-highlighted')).not.toBeInTheDocument()
+  })
 })

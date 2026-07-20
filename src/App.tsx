@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react'
-import { AgentProvider } from './context/AgentContext'
+import { AgentProvider, useAgents } from './context/AgentContext'
 import KanbanBoard from './components/KanbanBoard'
 import AgentDetailView from './components/AgentDetailView'
+import AgentSidebar from './components/AgentSidebar'
 import type { Column } from './types'
 
 function Header({ onToggleAgents }: { onToggleAgents: () => void }) {
@@ -14,9 +15,11 @@ function Header({ onToggleAgents }: { onToggleAgents: () => void }) {
   )
 }
 
-function App() {
+function AppContent() {
+  const { agents } = useAgents()
   const [showAgents, setShowAgents] = useState(false)
   const [columns, setColumns] = useState<Column[]>([])
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
 
   const handleToggleAgents = useCallback(() => {
     setShowAgents((prev) => !prev)
@@ -26,8 +29,12 @@ function App() {
     setColumns(cols)
   }, [])
 
+  const handleAgentClick = useCallback((id: string) => {
+    setSelectedAgentId((prev) => (prev === id ? null : id))
+  }, [])
+
   return (
-    <AgentProvider>
+    <>
       <Header onToggleAgents={handleToggleAgents} />
       <div className="app-body">
         {showAgents && (
@@ -36,8 +43,22 @@ function App() {
             columns={columns}
           />
         )}
-        <KanbanBoard onColumnsChange={handleColumnsChange} />
+        <AgentSidebar
+          agents={agents}
+          columns={columns}
+          selectedAgentId={selectedAgentId}
+          onAgentClick={handleAgentClick}
+        />
+        <KanbanBoard onColumnsChange={handleColumnsChange} highlightAgentId={selectedAgentId} />
       </div>
+    </>
+  )
+}
+
+function App() {
+  return (
+    <AgentProvider>
+      <AppContent />
     </AgentProvider>
   )
 }
