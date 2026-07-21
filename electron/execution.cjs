@@ -62,7 +62,7 @@ class ExecutionEngine {
       cwd,
       env: { ...process.env },
       shell: false,
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'],
     })
 
     this.activeProcesses.set(taskId, proc)
@@ -184,6 +184,28 @@ class ExecutionEngine {
       }
     }, 5000)
     return true
+  }
+
+  /**
+   * Send input to a running task's stdin.
+   * @param {string} taskId
+   * @param {string} text
+   * @returns {{ success: boolean, fallback?: boolean, error?: string }}
+   */
+  sendInput(taskId, text) {
+    const proc = this.activeProcesses.get(taskId)
+    if (!proc) {
+      return { success: false, fallback: true, error: 'Process not found' }
+    }
+    if (!proc.stdin || !proc.stdin.writable) {
+      return { success: false, fallback: true, error: 'stdin not writable' }
+    }
+    try {
+      proc.stdin.write(text + '\n')
+      return { success: true }
+    } catch (err) {
+      return { success: false, fallback: true, error: err.message }
+    }
   }
 
   /**

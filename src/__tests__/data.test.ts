@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { defaultAgents, initialColumns, getColumnName, normalizeAgents, normalizeTasks } from '../data'
+import { defaultAgents, initialColumns, getColumnName, normalizeAgents, normalizeTasks, normalizeMessages } from '../data'
 
 describe('data', () => {
   it('default agents have required fields with correct types', () => {
@@ -104,6 +104,10 @@ describe('normalizeTasks', () => {
     expect(result[0].sessionId).toBe('ses_123')
     expect(result[0].log).toBe('some output')
     expect(result[0].executionStatus).toBe('done')
+    // Legacy log should be migrated to messages
+    expect(result[0].messages).toHaveLength(1)
+    expect(result[0].messages![0].role).toBe('agent')
+    expect(result[0].messages![0].content).toBe('some output')
   })
 
   it('assigns defaults for missing optional fields', () => {
@@ -111,8 +115,35 @@ describe('normalizeTasks', () => {
     expect(result).toHaveLength(1)
     expect(result[0]).not.toHaveProperty('workingDir')
     expect(result[0]).not.toHaveProperty('sessionId')
-    expect(result[0]).not.toHaveProperty('log')
+    expect(result[0]).not.toHaveProperty('messages')
     expect(result[0]).not.toHaveProperty('executionStatus')
+  })
+
+  it('preserves structured messages when present', () => {
+    const messages = [
+      { role: 'agent', content: 'Working on it...', timestamp: '2026-07-20T01:00:00Z' },
+      { role: 'user', content: 'Proceed', timestamp: '2026-07-20T01:01:00Z' },
+      { role: 'agent', content: 'Done!', timestamp: '2026-07-20T01:02:00Z' },
+    ]
+    const result = normalizeTasks([{ id: 't1', title: 'Chat task', priority: 'media', agents: ['a1'], messages }])
+    expect(result[0].messages).toHaveLength(3)
+    expect(result[0].messages![0]).toEqual({ role: 'agent', content: 'Working on it...', timestamp: '2026-07-20T01:00:00Z' })
+    expect(result[0].messages![1]).toEqual({ role: 'user', content: 'Proceed', timestamp: '2026-07-20T01:01:00Z' })
+  })
+
+  it('prefers messages over log when both exist', () => {
+    const input = [{
+      id: 't1',
+      title: 'Both',
+      priority: 'media',
+      agents: [],
+      log: 'old log',
+      messages: [{ role: 'agent', content: 'new structured', timestamp: '2026-07-20T00:00:00Z' }],
+    }]
+    const result = normalizeTasks(input)
+    expect(result[0].messages).toHaveLength(1)
+    expect(result[0].messages![0].content).toBe('new structured')
+    expect(result[0]).not.toHaveProperty('log')
   })
 
   it('filters out invalid entries', () => {
@@ -124,5 +155,37 @@ describe('normalizeTasks', () => {
   it('returns empty for non-array input', () => {
     expect(normalizeTasks(null)).toEqual([])
     expect(normalizeTasks(undefined)).toEqual([])
+  })
+})
+
+describe('normalizeMessages', () => {
+  it('normalizes valid messages', () => {
+    const input = [
+      { role: 'agent', content: 'Hello', timestamp: '2026-07-20T00:00:00Z' },
+      { role: 'user', content: 'Hi', timestamp: '2026-07-20T00:01:00Z' },
+    ]
+    const result = normalizeMessages(input)
+    expect(result).toHaveLength(2)
+    expect(result[0]).toEqual({ role: 'agent', content: 'Hello', timestamp: '2026-07-20T00:00:00Z' })
+    expect(result[1]).toEqual({ role: 'user', content: 'Hi', timestamp: '2026-07-20T00:01:00Z' })
+  })
+
+  it('filters out invalid messages', () => {
+    const input = [
+      null,
+      { role: 'invalid', content: 'bad' },
+      { role: 'agent' },
+      { role: 'agent', content: 'good', timestamp: '2026-07-20T00:00:00Z' },
+    ]
+    const result = normalizeMessages(input)
+    expect(result).toHaveLength(1)
+    expect(result[0].content).toBe('good')
+  })
+
+  it('assigns timestamp if missing', () => {
+    const input = [{ role: 'user', content: 'no timestamp' }]
+    const result = normalizeMessages(input)
+    expect(result).toHaveLength(1)
+    expect(result[0].timestamp).toBeTruthy()
   })
 })

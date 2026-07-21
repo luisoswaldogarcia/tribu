@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Task execution
   executeTask: (taskId, agentId) => ipcRenderer.invoke('execute-task', taskId, agentId),
   cancelTask: (taskId) => ipcRenderer.invoke('cancel-task', taskId),
+  sendTaskInput: (taskId, text) => ipcRenderer.invoke('send-task-input', taskId, text),
 
   // Task execution events (streaming)
   onTaskOutput: (callback) => {

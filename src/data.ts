@@ -1,4 +1,4 @@
-import type { Column, Agent, AgentStatus, AgentMode, AgentExecutor, Task, TaskStatus } from './types'
+import type { Column, Agent, AgentStatus, AgentMode, AgentExecutor, Task, TaskStatus, ChatMessage } from './types'
 
 const validStatuses: AgentStatus[] = ['active', 'inactive', 'busy', 'waiting_input']
 const validModes: AgentMode[] = ['plan', 'executor', 'advisor']
@@ -65,11 +65,32 @@ export function normalizeTasks(input: unknown): Task[] {
     if (typeof raw.holdReason === 'string' && raw.holdReason) task.holdReason = raw.holdReason
     if (typeof raw.workingDir === 'string' && raw.workingDir) task.workingDir = raw.workingDir
     if (typeof raw.sessionId === 'string' && raw.sessionId) task.sessionId = raw.sessionId
-    if (typeof raw.log === 'string') task.log = raw.log
     if (typeof raw.outputPreview === 'string') task.outputPreview = raw.outputPreview
     if (validTaskStatuses.includes(raw.executionStatus as TaskStatus)) task.executionStatus = raw.executionStatus as TaskStatus
 
+    // Handle messages: prefer structured messages, migrate from legacy log string
+    if (Array.isArray(raw.messages)) {
+      task.messages = normalizeMessages(raw.messages)
+    } else if (typeof raw.log === 'string' && raw.log) {
+      task.messages = [{ role: 'agent', content: raw.log, timestamp: new Date().toISOString() }]
+      task.log = raw.log
+    }
+
     return [task]
+  })
+}
+
+export function normalizeMessages(input: unknown[]): ChatMessage[] {
+  return input.flatMap((msg) => {
+    if (!msg || typeof msg !== 'object') return []
+    const raw = msg as Record<string, unknown>
+    if (raw.role !== 'agent' && raw.role !== 'user') return []
+    if (typeof raw.content !== 'string') return []
+    return [{
+      role: raw.role as 'agent' | 'user',
+      content: raw.content,
+      timestamp: typeof raw.timestamp === 'string' ? raw.timestamp : new Date().toISOString(),
+    }]
   })
 }
 
@@ -77,20 +98,13 @@ export const initialColumns: Column[] = [
   {
     id: 'todo',
     title: 'To Do',
-    tasks: [
-      { id: 't1', title: 'Diseñar base de datos', description: 'Esquema inicial de tablas', priority: 'alta', agents: ['a1', 'a2'] },
-      { id: 't2', title: 'Configurar CI/CD', priority: 'media', agents: ['a3'] },
-      { id: 't3', title: 'Documentar API', priority: 'baja', agents: [] },
-    ],
+    tasks: [],
     color: '#ff6b6b',
   },
   {
     id: 'wip',
     title: 'In Progress',
-    tasks: [
-      { id: 't4', title: 'Implementar login', description: 'Autenticación con JWT', priority: 'alta', agents: ['a1'] },
-      { id: 't5', title: 'Crear componentes UI', priority: 'alta', agents: ['a2', 'a3'] },
-    ],
+    tasks: [],
     color: '#ffd93d',
   },
   {
@@ -102,7 +116,7 @@ export const initialColumns: Column[] = [
   {
     id: 'done',
     title: 'Done',
-    tasks: [{ id: 't6', title: 'Repo inicial', priority: 'media', agents: ['a1'] }],
+    tasks: [],
     color: '#6bcb77',
   },
 ]

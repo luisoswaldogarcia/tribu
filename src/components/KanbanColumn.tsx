@@ -9,9 +9,10 @@ interface Props {
   highlightAgentId?: string | null
   onExecute?: (taskId: string, agentId: string) => void
   onCancel?: (taskId: string) => void
+  onOpenChat?: (taskId: string) => void
 }
 
-export default function KanbanColumn({ column, agents, onDrop, highlightAgentId, onExecute, onCancel }: Props) {
+export default function KanbanColumn({ column, agents, onDrop, highlightAgentId, onExecute, onCancel, onOpenChat }: Props) {
   const [isDragOver, setIsDragOver] = useState(false)
 
   const handleDrop = useCallback((event: React.DragEvent) => {
@@ -34,7 +35,7 @@ export default function KanbanColumn({ column, agents, onDrop, highlightAgentId,
         <span className="column-title">{column.title}</span>
         <span className="column-count">{column.tasks.length}</span>
       </div>
-      {column.tasks.map((task) => <KanbanCard key={task.id} task={task} agents={agents} highlightAgentId={highlightAgentId} columnId={column.id} onExecute={onExecute} onCancel={onCancel} />)}
+      {column.tasks.map((task) => <KanbanCard key={task.id} task={task} agents={agents} highlightAgentId={highlightAgentId} columnId={column.id} onExecute={onExecute} onCancel={onCancel} onOpenChat={onOpenChat} />)}
     </div>
   )
 }

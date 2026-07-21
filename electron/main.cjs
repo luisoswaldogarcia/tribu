@@ -35,10 +35,32 @@ function sanitizeTask(task) {
   if (typeof task.workingDir === 'string' && task.workingDir) sanitized.workingDir = task.workingDir
   if (typeof task.sessionId === 'string' && task.sessionId) sanitized.sessionId = task.sessionId
   if (typeof task.log === 'string') sanitized.log = task.log
+  if (Array.isArray(task.messages)) sanitized.messages = sanitizeMessages(task.messages)
   if (typeof task.outputPreview === 'string') sanitized.outputPreview = task.outputPreview
   if (VALID_TASK_STATUSES.includes(task.executionStatus)) sanitized.executionStatus = task.executionStatus
 
   return sanitized
+}
+
+function sanitizeMessages(messages) {
+  if (!Array.isArray(messages)) return []
+  const MAX_MESSAGES = 500
+  const MAX_CONTENT_LENGTH = 50000 // 50KB per message
+  const validated = messages.flatMap((msg) => {
+    if (!msg || typeof msg !== 'object') return []
+    if (msg.role !== 'agent' && msg.role !== 'user') return []
+    if (typeof msg.content !== 'string') return []
+    const content = msg.content.length > MAX_CONTENT_LENGTH
+      ? msg.content.slice(-MAX_CONTENT_LENGTH)
+      : msg.content
+    return [{
+      role: msg.role,
+      content,
+      timestamp: typeof msg.timestamp === 'string' ? msg.timestamp : new Date().toISOString(),
+    }]
+  })
+  // Keep only the last MAX_MESSAGES to prevent unbounded growth
+  return validated.length > MAX_MESSAGES ? validated.slice(-MAX_MESSAGES) : validated
 }
 
 function sanitizeBoardData(data) {
@@ -224,6 +246,75 @@ ipcMain.handle('execute-task', async (_event, taskId, agentId) => {
 
 ipcMain.handle('cancel-task', async (_event, taskId) => {
   return engine._cancel(taskId)
+})
+
+// --- IPC: Send input to running task ---
+ipcMain.handle('send-task-input', async (_event, taskId, text) => {
+  if (typeof taskId !== 'string' || typeof text !== 'string') {
+    return { success: false, error: 'Invalid parameters' }
+  }
+
+  const result = engine.sendInput(taskId, text)
+
+  if (!result.success && result.fallback) {
+    // Fallback: restart session with the user's input as new prompt
+    try {
+      const boardData = loadData()
+      if (!boardData) return { success: false, error: 'No board data' }
+
+      // Find the task and its agent
+      let task = null
+      for (const col of boardData.columns) {
+        task = col.tasks.find((t) => t.id === taskId)
+        if (task) break
+      }
+      if (!task) return { success: false, error: 'Task not found' }
+
+      const agentId = task.agents[0]
+      const agent = agentId ? boardData.agents.find((a) => a.id === agentId) : null
+      if (!agent) return { success: false, error: 'Agent not found' }
+
+      const cwd = task.workingDir || process.cwd()
+      const prompt = text
+
+      const handle = engine.execute({
+        taskId,
+        executor: agent.executor,
+        prompt,
+        cwd,
+        model: agent.model,
+        agentFile: agent.agentFile,
+        sessionId: task.sessionId,
+      })
+
+      handle.onOutput((chunk) => {
+        const win = getWindow()
+        if (win && !win.isDestroyed()) {
+          win.webContents.send('task-output', { taskId, chunk })
+        }
+      })
+
+      handle.onWaitingInput(() => {
+        const win = getWindow()
+        if (win && !win.isDestroyed()) {
+          win.webContents.send('task-waiting-input', { taskId })
+        }
+      })
+
+      handle.onFinish(({ exitCode, sessionId, log }) => {
+        const win = getWindow()
+        if (win && !win.isDestroyed()) {
+          win.webContents.send('task-finished', { taskId, exitCode, sessionId, log })
+        }
+      })
+
+      return { success: true, fallback: true }
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  }
+
+  return result
 })
 
 // --- IPC: Models ---

@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react'
-import type { Column, Priority, Task } from '../types'
+import type { Column, Priority, Task, ChatMessage } from '../types'
 import { initialColumns, getColumnName, normalizeAgents } from '../data'
 import { eventBus, eventTimestamp } from '../events/EventBus'
 import { useAgents } from '../context/AgentContext'
 import KanbanColumn from './KanbanColumn'
 import CreateTaskModal from './CreateTaskModal'
 import CreateAgentModal from './CreateAgentModal'
+import TaskChatModal from './TaskChatModal'
 
 function generateId(): string {
   return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
@@ -57,6 +58,7 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
   const [columns, setColumns] = useState<Column[]>(initialColumns)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showCreateAgent, setShowCreateAgent] = useState(false)
+  const [chatTaskId, setChatTaskId] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -162,7 +164,15 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
           // Keep only last 5 lines for preview
           const lines = ((t.outputPreview || '') + chunk).split('\n')
           const preview = lines.slice(-5).join('\n')
-          return { ...t, outputPreview: preview }
+          // Accumulate into messages: append to last agent message or create new one
+          const messages = [...(t.messages || [])]
+          const lastMsg = messages[messages.length - 1]
+          if (lastMsg && lastMsg.role === 'agent') {
+            messages[messages.length - 1] = { ...lastMsg, content: lastMsg.content + chunk }
+          } else {
+            messages.push({ role: 'agent', content: chunk, timestamp: new Date().toISOString() } as ChatMessage)
+          }
+          return { ...t, outputPreview: preview, messages }
         }),
       })))
     })
@@ -173,10 +183,15 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
         const withoutTask = prev.map((col) => {
           const found = col.tasks.find((t) => t.id === taskId)
           if (found) {
+            // If no messages were accumulated during streaming, create one from the full log
+            const messages = (found.messages && found.messages.length > 0)
+              ? found.messages
+              : (log ? [{ role: 'agent' as const, content: log, timestamp: new Date().toISOString() }] : [])
             task = {
               ...found,
               executionStatus: exitCode === 0 ? 'done' : 'error',
               log,
+              messages,
               sessionId: sessionId || found.sessionId,
               outputPreview: '',
             }
@@ -216,10 +231,61 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
 
   if (!loaded && window.electronAPI) return null
 
+  // Find the task for the chat modal
+  const chatTask = chatTaskId
+    ? columns.flatMap((col) => col.tasks).find((t) => t.id === chatTaskId) || null
+    : null
+
+  const handleOpenChat = (taskId: string) => {
+    setChatTaskId(taskId)
+  }
+
+  const handleSendInput = async (taskId: string, text: string) => {
+    // Check if task is done/error — reactivate by moving to TODO
+    const currentTask = columns.flatMap((col) => col.tasks).find((t) => t.id === taskId)
+    const isFinished = currentTask?.executionStatus === 'done' || currentTask?.executionStatus === 'error'
+
+    if (isFinished) {
+      // Reactivate: move task from done/error to TODO with new message
+      setColumns((prev) => {
+        let task: Task | undefined
+        const withoutTask = prev.map((col) => {
+          const found = col.tasks.find((t) => t.id === taskId)
+          if (found) {
+            const messages = [...(found.messages || []), { role: 'user' as const, content: text, timestamp: new Date().toISOString() }]
+            task = { ...found, messages, executionStatus: 'idle', outputPreview: '' }
+          }
+          return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
+        })
+        if (!task) return prev
+        return withoutTask.map((col) => col.id === 'todo' ? { ...col, tasks: [...col.tasks, task as Task] } : col)
+      })
+      window.electronAPI?.notify('🔄 Tribu', 'Tarea reactivada en To Do')
+      return
+    }
+
+    // Add user message to the task's messages immediately
+    setColumns((prev) => prev.map((col) => ({
+      ...col,
+      tasks: col.tasks.map((t) => {
+        if (t.id !== taskId) return t
+        const messages = [...(t.messages || []), { role: 'user' as const, content: text, timestamp: new Date().toISOString() }]
+        return { ...t, messages, executionStatus: t.executionStatus === 'hold' ? 'running' : t.executionStatus }
+      }),
+    })))
+
+    // Send input to the backend
+    const result = await window.electronAPI?.sendTaskInput(taskId, text)
+    if (result && !result.success && !result.fallback) {
+      // If sending failed entirely, notify
+      window.electronAPI?.notify('❌ Tribu', result.error || 'No se pudo enviar input')
+    }
+  }
+
   return (
     <>
       <div className="board">
-        {columns.map((column) => <KanbanColumn key={column.id} column={column} agents={agents} onDrop={handleDrop} highlightAgentId={highlightAgentId} onExecute={handleExecute} onCancel={handleCancel} />)}
+        {columns.map((column) => <KanbanColumn key={column.id} column={column} agents={agents} onDrop={handleDrop} highlightAgentId={highlightAgentId} onExecute={handleExecute} onCancel={handleCancel} onOpenChat={handleOpenChat} />)}
       </div>
       <div className="fab-group">
         <button className="fab fab-agent" onClick={() => setShowCreateAgent(true)} title="Agregar agente">👤</button>
@@ -227,6 +293,7 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
       </div>
       {showCreateModal && <CreateTaskModal onClose={() => setShowCreateModal(false)} onCreate={handleCreate} />}
       {showCreateAgent && <CreateAgentModal onClose={() => setShowCreateAgent(false)} />}
+      {chatTask && <TaskChatModal task={chatTask} agents={agents} onClose={() => setChatTaskId(null)} onSendInput={handleSendInput} />}
     </>
   )
 }

@@ -8,6 +8,12 @@ export type AgentExecutor = 'opencode' | 'kiro-cli'
 
 export type TaskStatus = 'idle' | 'running' | 'done' | 'error' | 'hold'
 
+export interface ChatMessage {
+  role: 'agent' | 'user'
+  content: string
+  timestamp: string
+}
+
 export interface Agent {
   id: string
   name: string
@@ -30,7 +36,9 @@ export interface Task {
   holdReason?: string
   workingDir?: string
   sessionId?: string
+  /** @deprecated Use messages instead */
   log?: string
+  messages?: ChatMessage[]
   outputPreview?: string
   executionStatus?: TaskStatus
 }
@@ -55,6 +63,7 @@ declare global {
       saveBoard: (data: BoardData) => Promise<boolean>
       executeTask: (taskId: string, agentId: string) => Promise<{ success: boolean; error?: string }>
       cancelTask: (taskId: string) => Promise<boolean>
+      sendTaskInput: (taskId: string, text: string) => Promise<{ success: boolean; fallback?: boolean; error?: string }>
       onTaskOutput: (callback: (data: { taskId: string; chunk: string }) => void) => () => void
       onTaskFinished: (callback: (data: { taskId: string; exitCode: number; sessionId?: string; log: string }) => void) => () => void
       onTaskWaitingInput: (callback: (data: { taskId: string }) => void) => () => void
