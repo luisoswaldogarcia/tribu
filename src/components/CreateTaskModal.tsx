@@ -4,7 +4,7 @@ import { useAgents } from '../context/AgentContext'
 
 interface Props {
   onClose: () => void
-  onCreate: (title: string, description: string, agentId: string, priority: Priority) => void
+  onCreate: (title: string, description: string, agentId: string, priority: Priority, workingDir: string) => void
 }
 
 export default function CreateTaskModal({ onClose, onCreate }: Props) {
@@ -13,11 +13,17 @@ export default function CreateTaskModal({ onClose, onCreate }: Props) {
   const [description, setDescription] = useState('')
   const [selectedAgentId, setSelectedAgentId] = useState('')
   const [priority, setPriority] = useState<Priority>('media')
+  const [workingDir, setWorkingDir] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) return
-    onCreate(title.trim(), description.trim(), selectedAgentId, priority)
+    onCreate(title.trim(), description.trim(), selectedAgentId, priority, workingDir.trim())
+  }
+
+  const handleSelectDirectory = async () => {
+    const dir = await window.electronAPI?.selectDirectory()
+    if (dir) setWorkingDir(dir)
   }
 
   return (
@@ -41,7 +47,7 @@ export default function CreateTaskModal({ onClose, onCreate }: Props) {
             <select value={selectedAgentId} onChange={(e) => setSelectedAgentId(e.target.value)}>
               <option value="">Sin agente asignado</option>
               {agents.map((agent) => (
-                <option key={agent.id} value={agent.id}>{agent.avatar} {agent.name}</option>
+                <option key={agent.id} value={agent.id}>{agent.avatar} {agent.name} ({agent.executor})</option>
               ))}
             </select>
           </label>
@@ -52,6 +58,20 @@ export default function CreateTaskModal({ onClose, onCreate }: Props) {
               <option value="media">Media</option>
               <option value="baja">Baja</option>
             </select>
+          </label>
+          <label>
+            Directorio de trabajo
+            <div className="input-with-button">
+              <input
+                type="text"
+                value={workingDir}
+                onChange={(e) => setWorkingDir(e.target.value)}
+                placeholder="/ruta/al/proyecto"
+              />
+              <button type="button" className="btn-secondary btn-small" onClick={handleSelectDirectory}>
+                📁
+              </button>
+            </div>
           </label>
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={onClose}>Cancelar</button>

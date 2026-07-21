@@ -41,9 +41,14 @@ describe('CreateAgentModal', () => {
     expect(screen.getByDisplayValue('⚡ Executor')).toBeInTheDocument()
   })
 
-  it('renders model selector with empty default', () => {
+  it('renders executor selector with opencode as default', () => {
     renderModal()
-    expect(screen.getByDisplayValue('Sin modelo asignado')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('🔧 OpenCode')).toBeInTheDocument()
+  })
+
+  it('renders model selector with auto option', () => {
+    renderModal()
+    expect(screen.getByText('auto')).toBeInTheDocument()
   })
 
   it('renders context textarea', () => {
@@ -51,19 +56,24 @@ describe('CreateAgentModal', () => {
     expect(screen.getByPlaceholderText('Instrucciones o contexto para el agente...')).toBeInTheDocument()
   })
 
+  it('renders description textarea for agent generation', () => {
+    renderModal()
+    expect(screen.getByPlaceholderText(/Experto en React/)).toBeInTheDocument()
+  })
+
   it('does not submit when name is manually cleared', async () => {
     const onClose = vi.fn()
     renderModal(onClose)
     const input = screen.getByPlaceholderText('Nombre del agente') as HTMLInputElement
     await userEvent.clear(input)
-    await userEvent.click(screen.getByRole('button', { name: 'Agregar agente' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Agregar sin perfil' }))
     expect(onClose).not.toHaveBeenCalled()
   })
 
   it('submits directly with auto-generated name (no manual input needed)', async () => {
     const onClose = vi.fn()
     renderModal(onClose)
-    await userEvent.click(screen.getByRole('button', { name: 'Agregar agente' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Agregar sin perfil' }))
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
@@ -73,7 +83,7 @@ describe('CreateAgentModal', () => {
     const input = screen.getByPlaceholderText('Nombre del agente')
     await userEvent.clear(input)
     await userEvent.type(input, 'MiAgente')
-    await userEvent.click(screen.getByRole('button', { name: 'Agregar agente' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Agregar sin perfil' }))
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
@@ -89,13 +99,6 @@ describe('CreateAgentModal', () => {
     expect(screen.getByText('📐 Plan')).toBeInTheDocument()
     expect(screen.getByText('⚡ Executor')).toBeInTheDocument()
     expect(screen.getByText('💡 Advisor')).toBeInTheDocument()
-  })
-
-  it('renders all model options', () => {
-    renderModal()
-    expect(screen.getByText('deepseek')).toBeInTheDocument()
-    expect(screen.getByText('claude')).toBeInTheDocument()
-    expect(screen.getByText('gpt-4o')).toBeInTheDocument()
   })
 
   it('renders all avatar options from pool', () => {

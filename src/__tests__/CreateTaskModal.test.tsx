@@ -27,7 +27,7 @@ describe('CreateTaskModal', () => {
     await user.type(screen.getByPlaceholderText('Detalles opcionales...'), 'Una descripción')
     await user.click(screen.getByText('Crear tarea'))
 
-    expect(onCreate).toHaveBeenCalledWith('Mi tarea', 'Una descripción', '', 'media')
+    expect(onCreate).toHaveBeenCalledWith('Mi tarea', 'Una descripción', '', 'media', '')
   })
 
   it('calls onClose when clicking close button', async () => {

@@ -6,16 +6,19 @@ export type AgentMode = 'plan' | 'executor' | 'advisor'
 
 export type AgentExecutor = 'opencode' | 'kiro-cli'
 
+export type TaskStatus = 'idle' | 'running' | 'done' | 'error' | 'hold'
+
 export interface Agent {
   id: string
   name: string
   avatar: string
   status: AgentStatus
   defaultMode: AgentMode
+  executor: AgentExecutor
   model?: string
-  executor?: AgentExecutor
   context?: string
   currentTaskId?: string
+  agentFile?: string
 }
 
 export interface Task {
@@ -25,6 +28,11 @@ export interface Task {
   priority: Priority
   agents: string[]
   holdReason?: string
+  workingDir?: string
+  sessionId?: string
+  log?: string
+  outputPreview?: string
+  executionStatus?: TaskStatus
 }
 
 export interface Column {
@@ -45,6 +53,14 @@ declare global {
       notify: (title: string, body: string) => void
       loadBoard: () => Promise<BoardData | null>
       saveBoard: (data: BoardData) => Promise<boolean>
+      executeTask: (taskId: string, agentId: string) => Promise<{ success: boolean; error?: string }>
+      cancelTask: (taskId: string) => Promise<boolean>
+      onTaskOutput: (callback: (data: { taskId: string; chunk: string }) => void) => () => void
+      onTaskFinished: (callback: (data: { taskId: string; exitCode: number; sessionId?: string; log: string }) => void) => () => void
+      onTaskWaitingInput: (callback: (data: { taskId: string }) => void) => () => void
+      selectDirectory: () => Promise<string | null>
+      getModels: (executor: AgentExecutor) => Promise<string[]>
+      generateAgentFile: (executor: AgentExecutor, description: string, mode: AgentMode, tools?: string) => Promise<{ success: boolean; path?: string; error?: string }>
     }
   }
 }

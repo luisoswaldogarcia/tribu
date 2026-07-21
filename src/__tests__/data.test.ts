@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { defaultAgents, initialColumns, getColumnName, normalizeAgents } from '../data'
+import { defaultAgents, initialColumns, getColumnName, normalizeAgents, normalizeTasks } from '../data'
 
 describe('data', () => {
   it('default agents have required fields with correct types', () => {
@@ -31,7 +31,7 @@ describe('data', () => {
   it('normalizes legacy agents without new fields — assigns defaults', () => {
     const result = normalizeAgents([{ id: 'a1', name: 'Zeref', avatar: '🧙' }])
     expect(result).toEqual([
-      { id: 'a1', name: 'Zeref', avatar: '🧙', status: 'active', defaultMode: 'executor' },
+      { id: 'a1', name: 'Zeref', avatar: '🧙', status: 'active', defaultMode: 'executor', executor: 'opencode' },
     ])
   })
 
@@ -66,7 +66,7 @@ describe('data', () => {
   it('does not include optional fields when empty/undefined', () => {
     const result = normalizeAgents([{ id: 'a1', name: 'Test', avatar: '🤖', model: '', executor: '', context: '' }])
     expect(result[0]).not.toHaveProperty('model')
-    expect(result[0]).not.toHaveProperty('executor')
+    expect(result[0].executor).toBe('opencode') // empty string falls back to default
     expect(result[0]).not.toHaveProperty('context')
   })
 
@@ -81,5 +81,48 @@ describe('data', () => {
     const result = normalizeAgents([null, undefined, {}, { id: 'a1' }, { name: 'Test' }, { id: 'a1', name: 'Valid', avatar: '🤖' }])
     expect(result).toHaveLength(1)
     expect(result[0].name).toBe('Valid')
+  })
+})
+
+describe('normalizeTasks', () => {
+  it('normalizes a valid task with all fields', () => {
+    const input = [{
+      id: 't1',
+      title: 'Test task',
+      description: 'A description',
+      priority: 'alta',
+      agents: ['a1'],
+      workingDir: '/home/user/project',
+      sessionId: 'ses_123',
+      log: 'some output',
+      outputPreview: 'last line',
+      executionStatus: 'done',
+    }]
+    const result = normalizeTasks(input)
+    expect(result).toHaveLength(1)
+    expect(result[0].workingDir).toBe('/home/user/project')
+    expect(result[0].sessionId).toBe('ses_123')
+    expect(result[0].log).toBe('some output')
+    expect(result[0].executionStatus).toBe('done')
+  })
+
+  it('assigns defaults for missing optional fields', () => {
+    const result = normalizeTasks([{ id: 't1', title: 'Basic', priority: 'baja', agents: [] }])
+    expect(result).toHaveLength(1)
+    expect(result[0]).not.toHaveProperty('workingDir')
+    expect(result[0]).not.toHaveProperty('sessionId')
+    expect(result[0]).not.toHaveProperty('log')
+    expect(result[0]).not.toHaveProperty('executionStatus')
+  })
+
+  it('filters out invalid entries', () => {
+    const result = normalizeTasks([null, {}, { id: 't1' }, { id: 't1', title: 'Valid', priority: 'media', agents: [] }])
+    expect(result).toHaveLength(1)
+    expect(result[0].title).toBe('Valid')
+  })
+
+  it('returns empty for non-array input', () => {
+    expect(normalizeTasks(null)).toEqual([])
+    expect(normalizeTasks(undefined)).toEqual([])
   })
 })

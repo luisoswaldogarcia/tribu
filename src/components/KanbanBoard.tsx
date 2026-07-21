@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import type { Column, Priority, Task } from '../types'
 import { initialColumns, getColumnName, normalizeAgents } from '../data'
 import { eventBus, eventTimestamp } from '../events/EventBus'
@@ -103,13 +103,14 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
     })
   }
 
-  const handleCreate = (title: string, description: string, agentId: string, priority: Priority) => {
+  const handleCreate = (title: string, description: string, agentId: string, priority: Priority, workingDir: string) => {
     const newTask: Task = {
       id: generateId(),
       title,
       description: description || undefined,
       priority,
       agents: agentId ? [agentId] : [],
+      workingDir: workingDir || undefined,
     }
     eventBus.publish({ type: 'task.created', task: newTask, timestamp: eventTimestamp() })
     setShowCreateModal(false)
@@ -117,12 +118,108 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
     window.electronAPI?.notify('📋 Tribu - New task', `${agentName} created "${title}" in To Do`)
   }
 
+  // --- Task execution ---
+  const handleExecute = useCallback(async (taskId: string, agentId: string) => {
+    // Mark task as running and move to WIP
+    setColumns((prev) => {
+      let task: Task | undefined
+      const withoutTask = prev.map((col) => {
+        const found = col.tasks.find((t) => t.id === taskId)
+        if (found) task = { ...found, executionStatus: 'running', outputPreview: '' }
+        return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
+      })
+      if (!task) return prev
+      return withoutTask.map((col) => col.id === 'wip' ? { ...col, tasks: [...col.tasks, task as Task] } : col)
+    })
+
+    const result = await window.electronAPI?.executeTask(taskId, agentId)
+    if (!result?.success) {
+      window.electronAPI?.notify('❌ Tribu - Error', result?.error || 'Error al ejecutar tarea')
+      setColumns((prev) => prev.map((col) => ({
+        ...col,
+        tasks: col.tasks.map((t) => t.id === taskId ? { ...t, executionStatus: 'error' } : t),
+      })))
+    }
+  }, [])
+
+  const handleCancel = useCallback(async (taskId: string) => {
+    await window.electronAPI?.cancelTask(taskId)
+    setColumns((prev) => prev.map((col) => ({
+      ...col,
+      tasks: col.tasks.map((t) => t.id === taskId ? { ...t, executionStatus: 'idle', outputPreview: '' } : t),
+    })))
+  }, [])
+
+  // Subscribe to streaming output
+  useEffect(() => {
+    if (!window.electronAPI) return
+
+    const unsubOutput = window.electronAPI.onTaskOutput(({ taskId, chunk }) => {
+      setColumns((prev) => prev.map((col) => ({
+        ...col,
+        tasks: col.tasks.map((t) => {
+          if (t.id !== taskId) return t
+          // Keep only last 5 lines for preview
+          const lines = ((t.outputPreview || '') + chunk).split('\n')
+          const preview = lines.slice(-5).join('\n')
+          return { ...t, outputPreview: preview }
+        }),
+      })))
+    })
+
+    const unsubFinish = window.electronAPI.onTaskFinished(({ taskId, exitCode, sessionId, log }) => {
+      setColumns((prev) => {
+        let task: Task | undefined
+        const withoutTask = prev.map((col) => {
+          const found = col.tasks.find((t) => t.id === taskId)
+          if (found) {
+            task = {
+              ...found,
+              executionStatus: exitCode === 0 ? 'done' : 'error',
+              log,
+              sessionId: sessionId || found.sessionId,
+              outputPreview: '',
+            }
+          }
+          return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
+        })
+        if (!task) return prev
+        const targetCol = exitCode === 0 ? 'done' : 'wip'
+        return withoutTask.map((col) => col.id === targetCol ? { ...col, tasks: [...col.tasks, task as Task] } : col)
+      })
+      const status = exitCode === 0 ? '✅ completada' : '❌ con error'
+      window.electronAPI?.notify('🤖 Tribu - Tarea finalizada', `Tarea ${status}`)
+    })
+
+    const unsubWaiting = window.electronAPI.onTaskWaitingInput(({ taskId }) => {
+      setColumns((prev) => {
+        let task: Task | undefined
+        const withoutTask = prev.map((col) => {
+          const found = col.tasks.find((t) => t.id === taskId)
+          if (found) {
+            task = { ...found, executionStatus: 'hold', holdReason: 'Esperando input del usuario', outputPreview: '' }
+          }
+          return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
+        })
+        if (!task) return prev
+        return withoutTask.map((col) => col.id === 'hold' ? { ...col, tasks: [...col.tasks, task as Task] } : col)
+      })
+      window.electronAPI?.notify('⏸ Tribu - Agente esperando', 'El agente necesita input, tarea movida a On Hold')
+    })
+
+    return () => {
+      unsubOutput()
+      unsubFinish()
+      unsubWaiting()
+    }
+  }, [])
+
   if (!loaded && window.electronAPI) return null
 
   return (
     <>
       <div className="board">
-        {columns.map((column) => <KanbanColumn key={column.id} column={column} agents={agents} onDrop={handleDrop} highlightAgentId={highlightAgentId} />)}
+        {columns.map((column) => <KanbanColumn key={column.id} column={column} agents={agents} onDrop={handleDrop} highlightAgentId={highlightAgentId} onExecute={handleExecute} onCancel={handleCancel} />)}
       </div>
       <div className="fab-group">
         <button className="fab fab-agent" onClick={() => setShowCreateAgent(true)} title="Agregar agente">👤</button>

@@ -1,19 +1,23 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAgents } from '../context/AgentContext'
 import { getPixelAvatar } from './PixelAvatar'
-import type { Agent, AgentMode } from '../types'
+import { AVATAR_POOL } from '../utils/avatarPool'
+import type { Agent, AgentMode, AgentExecutor } from '../types'
 
 interface Props {
   agent: Agent
   onClose: () => void
 }
 
-const avatars = ['🧙', '🤖', '🦊', '🐉', '👾', '🧝', '🧞', '🐱', '🦉', '⭐', '🌈', '👑']
-const models = ['deepseek', 'claude', 'gpt-4o', 'gemini', 'llama']
 const modes: { value: AgentMode; label: string }[] = [
   { value: 'plan', label: '📐 Plan' },
   { value: 'executor', label: '⚡ Executor' },
   { value: 'advisor', label: '💡 Advisor' },
+]
+
+const executors: { value: AgentExecutor; label: string }[] = [
+  { value: 'opencode', label: '🔧 OpenCode' },
+  { value: 'kiro-cli', label: '🚀 Kiro CLI' },
 ]
 
 export default function AgentEditModal({ agent, onClose }: Props) {
@@ -21,8 +25,36 @@ export default function AgentEditModal({ agent, onClose }: Props) {
   const [name, setName] = useState(agent.name)
   const [avatar, setAvatar] = useState(agent.avatar)
   const [defaultMode, setDefaultMode] = useState<AgentMode>(agent.defaultMode)
+  const [executor, setExecutor] = useState<AgentExecutor>(agent.executor)
   const [model, setModel] = useState(agent.model || '')
+  const [models, setModels] = useState<string[]>(['auto'])
+  const [loadingModels, setLoadingModels] = useState(false)
   const [context, setContext] = useState(agent.context || '')
+
+  // Load models when executor changes
+  useEffect(() => {
+    let cancelled = false
+    setLoadingModels(true)
+    setModels(['auto'])
+
+    if (window.electronAPI?.getModels) {
+      window.electronAPI.getModels(executor).then((result) => {
+        if (!cancelled) {
+          setModels(result.length > 0 ? result : ['auto'])
+          setLoadingModels(false)
+        }
+      }).catch(() => {
+        if (!cancelled) {
+          setModels(['auto'])
+          setLoadingModels(false)
+        }
+      })
+    } else {
+      setLoadingModels(false)
+    }
+
+    return () => { cancelled = true }
+  }, [executor])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,6 +64,7 @@ export default function AgentEditModal({ agent, onClose }: Props) {
       name: trimmedName,
       avatar,
       defaultMode,
+      executor,
       model: model || undefined,
       context: context.trim() || undefined,
     })
@@ -57,7 +90,7 @@ export default function AgentEditModal({ agent, onClose }: Props) {
             />
           </label>
           <div className="avatar-picker">
-            {avatars.map((option) => (
+            {AVATAR_POOL.map((option) => (
               <button
                 key={option}
                 type="button"
@@ -71,6 +104,14 @@ export default function AgentEditModal({ agent, onClose }: Props) {
             ))}
           </div>
           <label>
+            Executor (CLI)
+            <select value={executor} onChange={(e) => setExecutor(e.target.value as AgentExecutor)}>
+              {executors.map((ex) => (
+                <option key={ex.value} value={ex.value}>{ex.label}</option>
+              ))}
+            </select>
+          </label>
+          <label>
             Modo por defecto
             <select value={defaultMode} onChange={(e) => setDefaultMode(e.target.value as AgentMode)}>
               {modes.map((m) => (
@@ -79,12 +120,15 @@ export default function AgentEditModal({ agent, onClose }: Props) {
             </select>
           </label>
           <label>
-            Modelo (opcional)
-            <select value={model} onChange={(e) => setModel(e.target.value)}>
-              <option value="">Sin modelo asignado</option>
-              {models.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
+            Modelo
+            <select value={model} onChange={(e) => setModel(e.target.value)} disabled={loadingModels}>
+              {loadingModels ? (
+                <option value="">Cargando modelos...</option>
+              ) : (
+                models.map((m) => (
+                  <option key={m} value={m === 'auto' ? '' : m}>{m}</option>
+                ))
+              )}
             </select>
           </label>
           <label>
@@ -96,6 +140,11 @@ export default function AgentEditModal({ agent, onClose }: Props) {
               rows={3}
             />
           </label>
+          {agent.agentFile && (
+            <div className="agent-file-info">
+              📄 Perfil: <code>{agent.agentFile}</code>
+            </div>
+          )}
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={onClose}>Cancelar</button>
             <button type="submit" className="btn-primary">Guardar</button>

@@ -11,6 +11,7 @@ const agent: Agent = {
   avatar: '🧙',
   status: 'active',
   defaultMode: 'executor',
+  executor: 'opencode',
   model: 'claude',
   context: 'Agente principal',
 }
@@ -28,9 +29,9 @@ describe('AgentEditModal', () => {
   it('renders with agent data pre-filled', () => {
     renderModal()
     expect(screen.getByDisplayValue('Zeref')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('claude')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Agente principal')).toBeInTheDocument()
     expect(screen.getByDisplayValue('⚡ Executor')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('🔧 OpenCode')).toBeInTheDocument()
   })
 
   it('renders modal title', () => {
@@ -78,10 +79,8 @@ describe('AgentEditModal', () => {
     expect(screen.getByText('💡 Advisor')).toBeInTheDocument()
   })
 
-  it('renders model selector with all options', () => {
+  it('renders model selector with auto option when no API', () => {
     renderModal()
-    expect(screen.getByText('deepseek')).toBeInTheDocument()
-    expect(screen.getByText('claude')).toBeInTheDocument()
-    expect(screen.getByText('gpt-4o')).toBeInTheDocument()
+    expect(screen.getByText('auto')).toBeInTheDocument()
   })
 })
