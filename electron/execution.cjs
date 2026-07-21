@@ -120,7 +120,7 @@ class ExecutionEngine {
   }
 
   _buildOpenCodeCommand({ prompt, model, agentFile, sessionId }) {
-    const args = ['run']
+    const args = ['run', '--auto']
 
     if (sessionId) {
       args.push('--session', sessionId)
