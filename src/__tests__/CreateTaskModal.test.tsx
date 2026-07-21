@@ -35,7 +35,7 @@ describe('CreateTaskModal', () => {
     const onClose = vi.fn()
     renderWithProviders(<CreateTaskModal onClose={onClose} onCreate={vi.fn()} />)
 
-    await user.click(screen.getByText('✕'))
+    await user.click(document.querySelector('.modal-close')!)
     expect(onClose).toHaveBeenCalledOnce()
   })
 })

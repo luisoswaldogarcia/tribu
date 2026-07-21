@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAgents } from '../context/AgentContext'
 import { getPixelAvatar } from './PixelAvatar'
+import Icon from './Icon'
 import AgentEditModal from './AgentEditModal'
 import CreateAgentModal from './CreateAgentModal'
 import type { Agent, AgentMode, Column } from '../types'
@@ -11,16 +12,29 @@ interface Props {
 }
 
 const statusLabels: Record<string, string> = {
-  active: '🟢 Activo',
-  inactive: '⚫ Inactivo',
-  busy: '🟡 Ocupado',
-  waiting_input: '🔴 Esperando',
+  active: 'Activo',
+  inactive: 'Inactivo',
+  busy: 'Ocupado',
+  waiting_input: 'Esperando',
+}
+
+const statusColors: Record<string, string> = {
+  active: 'var(--status-active)',
+  inactive: 'var(--status-inactive)',
+  busy: 'var(--status-busy)',
+  waiting_input: 'var(--status-waiting)',
+}
+
+const modeIcons: Record<string, string> = {
+  plan: 'list',
+  executor: 'spark-burst',
+  advisor: 'info-circle',
 }
 
 const modeLabels: Record<string, string> = {
-  plan: '📐 Plan',
-  executor: '⚡ Executor',
-  advisor: '💡 Advisor',
+  plan: 'Plan',
+  executor: 'Executor',
+  advisor: 'Advisor',
 }
 
 const modeOptions: AgentMode[] = ['plan', 'executor', 'advisor']
@@ -45,7 +59,7 @@ export default function AgentDetailView({ onClose, columns }: Props) {
         <h2>Gestión de agentes</h2>
         <div className="agent-detail-header-actions">
           <button className="btn-primary" onClick={() => setShowCreateModal(true)}>+ Agregar agente</button>
-          <button className="agent-detail-close" onClick={onClose} title="Cerrar">✕</button>
+          <button className="agent-detail-close" onClick={onClose} title="Cerrar"><Icon name="close" size={16} /></button>
         </div>
       </div>
       <div className="agent-detail-table-wrapper">
@@ -66,10 +80,15 @@ export default function AgentDetailView({ onClose, columns }: Props) {
               return (
                 <tr key={agent.id} className={agent.status === 'inactive' ? 'agent-row-inactive' : ''}>
                   <td className="agent-detail-name-cell">
-                    <span className="agent-detail-avatar">{getPixelAvatar(agent.avatar)}</span>
+                    <span className={`agent-detail-avatar${agent.status === 'busy' ? ' avatar-busy' : ''}`}>{getPixelAvatar(agent.avatar)}</span>
                     <strong>{agent.name}</strong>
                   </td>
-                  <td>{statusLabels[agent.status]}</td>
+                  <td>
+                    <span className="agent-status-label">
+                      <span className="agent-status-dot" style={{ backgroundColor: statusColors[agent.status] }} />
+                      {statusLabels[agent.status]}
+                    </span>
+                  </td>
                   <td>
                     <select
                       value={agent.defaultMode}
@@ -84,16 +103,16 @@ export default function AgentDetailView({ onClose, columns }: Props) {
                   <td>{agent.model || '—'}</td>
                   <td className="agent-detail-task-cell">{taskTitle || '—'}</td>
                   <td className="agent-detail-actions-cell">
-                    <button onClick={() => setEditingAgent(agent)} title="Editar">✏️</button>
-                    <button onClick={() => duplicateAgent(agent.id)} title="Duplicar">📋</button>
+                    <button onClick={() => setEditingAgent(agent)} title="Editar"><Icon name="edit" size={16} /></button>
+                    <button onClick={() => duplicateAgent(agent.id)} title="Duplicar"><Icon name="duplicate" size={16} /></button>
                     <button
                       onClick={() => toggleAgentStatus(agent.id)}
                       disabled={agent.status === 'busy' || agent.status === 'waiting_input'}
                       title={agent.status === 'active' ? 'Desactivar' : 'Activar'}
                     >
-                      {agent.status === 'active' ? '⏸' : '▶'}
+                      <Icon name={agent.status === 'active' ? 'pause' : 'play'} size={16} />
                     </button>
-                    <button onClick={() => removeAgent(agent.id)} title="Eliminar" className="agent-delete-btn">🗑️</button>
+                    <button onClick={() => removeAgent(agent.id)} title="Eliminar" className="agent-delete-btn"><Icon name="delete" size={16} /></button>
                   </td>
                 </tr>
               )

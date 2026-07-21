@@ -27,14 +27,14 @@ function renderModal(onClose = vi.fn()) {
 }
 
 const allModes: { value: AgentMode; label: string }[] = [
-  { value: 'plan', label: '📐 Plan' },
-  { value: 'executor', label: '⚡ Executor' },
-  { value: 'advisor', label: '💡 Advisor' },
+  { value: 'plan', label: 'Plan' },
+  { value: 'executor', label: 'Executor' },
+  { value: 'advisor', label: 'Advisor' },
 ]
 
 const allExecutors: { value: AgentExecutor; label: string }[] = [
-  { value: 'opencode', label: '🔧 OpenCode' },
-  { value: 'kiro-cli', label: '🚀 Kiro CLI' },
+  { value: 'opencode', label: 'OpenCode' },
+  { value: 'kiro-cli', label: 'Kiro CLI' },
 ]
 
 describe('CreateAgentModal — all mode × executor combinations', () => {
@@ -55,11 +55,11 @@ describe('CreateAgentModal — all mode × executor combinations', () => {
         await user.type(nameInput, `Agent-${mode.value}-${executor.value}`)
 
         // Select executor
-        const executorSelect = screen.getByDisplayValue('🔧 OpenCode')
+        const executorSelect = screen.getByDisplayValue('OpenCode')
         await user.selectOptions(executorSelect, executor.value)
 
         // Select mode
-        const modeSelect = screen.getByDisplayValue('⚡ Executor')
+        const modeSelect = screen.getByDisplayValue('Executor')
         await user.selectOptions(modeSelect, mode.value)
 
         // Submit
@@ -109,7 +109,7 @@ describe('CreateAgentModal — generate agent file per executor', () => {
     await user.type(nameInput, 'OpenCode-Planner')
 
     // Select mode plan
-    const modeSelect = screen.getByDisplayValue('⚡ Executor')
+    const modeSelect = screen.getByDisplayValue('Executor')
     await user.selectOptions(modeSelect, 'plan')
 
     // Type description
@@ -163,11 +163,11 @@ describe('CreateAgentModal — generate agent file per executor', () => {
     await user.type(nameInput, 'Kiro-Advisor')
 
     // Switch executor to kiro-cli
-    const executorSelect = screen.getByDisplayValue('🔧 OpenCode')
+    const executorSelect = screen.getByDisplayValue('OpenCode')
     await user.selectOptions(executorSelect, 'kiro-cli')
 
     // Select mode advisor
-    const modeSelect = screen.getByDisplayValue('⚡ Executor')
+    const modeSelect = screen.getByDisplayValue('Executor')
     await user.selectOptions(modeSelect, 'advisor')
 
     // Type description

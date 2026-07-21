@@ -38,12 +38,12 @@ describe('CreateAgentModal', () => {
 
   it('renders mode selector with executor as default', () => {
     renderModal()
-    expect(screen.getByDisplayValue('⚡ Executor')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Executor')).toBeInTheDocument()
   })
 
   it('renders executor selector with opencode as default', () => {
     renderModal()
-    expect(screen.getByDisplayValue('🔧 OpenCode')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('OpenCode')).toBeInTheDocument()
   })
 
   it('renders model selector with auto option', () => {
@@ -96,9 +96,9 @@ describe('CreateAgentModal', () => {
 
   it('renders all mode options', () => {
     renderModal()
-    expect(screen.getByText('📐 Plan')).toBeInTheDocument()
-    expect(screen.getByText('⚡ Executor')).toBeInTheDocument()
-    expect(screen.getByText('💡 Advisor')).toBeInTheDocument()
+    expect(screen.getByText('Plan')).toBeInTheDocument()
+    expect(screen.getByText('Executor')).toBeInTheDocument()
+    expect(screen.getByText('Advisor')).toBeInTheDocument()
   })
 
   it('renders all avatar options from pool', () => {

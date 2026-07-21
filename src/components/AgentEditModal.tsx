@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAgents } from '../context/AgentContext'
 import { getPixelAvatar } from './PixelAvatar'
+import Icon from './Icon'
 import { AVATAR_POOL } from '../utils/avatarPool'
 import type { Agent, AgentMode, AgentExecutor } from '../types'
 
@@ -10,14 +11,14 @@ interface Props {
 }
 
 const modes: { value: AgentMode; label: string }[] = [
-  { value: 'plan', label: '📐 Plan' },
-  { value: 'executor', label: '⚡ Executor' },
-  { value: 'advisor', label: '💡 Advisor' },
+  { value: 'plan', label: 'Plan' },
+  { value: 'executor', label: 'Executor' },
+  { value: 'advisor', label: 'Advisor' },
 ]
 
 const executors: { value: AgentExecutor; label: string }[] = [
-  { value: 'opencode', label: '🔧 OpenCode' },
-  { value: 'kiro-cli', label: '🚀 Kiro CLI' },
+  { value: 'opencode', label: 'OpenCode' },
+  { value: 'kiro-cli', label: 'Kiro CLI' },
 ]
 
 export default function AgentEditModal({ agent, onClose }: Props) {
@@ -76,7 +77,7 @@ export default function AgentEditModal({ agent, onClose }: Props) {
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Editar agente</h2>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose}><Icon name="close" size={14} /></button>
         </div>
         <form onSubmit={handleSubmit}>
           <label>
@@ -142,7 +143,7 @@ export default function AgentEditModal({ agent, onClose }: Props) {
           </label>
           {agent.agentFile && (
             <div className="agent-file-info">
-              📄 Perfil: <code>{agent.agentFile}</code>
+              Perfil: <code>{agent.agentFile}</code>
             </div>
           )}
           <div className="modal-actions">

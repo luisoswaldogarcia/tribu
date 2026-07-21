@@ -1,4 +1,5 @@
 import { getPixelAvatar } from './PixelAvatar'
+import Icon from './Icon'
 import type { Agent, Task, TaskStatus } from '../types'
 
 interface Props {
@@ -11,18 +12,18 @@ interface Props {
   onOpenChat?: (taskId: string) => void
 }
 
-const priorityLabels: Record<string, string> = {
-  alta: '🔥 Alta',
-  media: '📋 Media',
-  baja: '🟢 Baja',
+const priorityLabels: Record<string, { icon: string; label: string }> = {
+  alta: { icon: 'flame', label: 'Alta' },
+  media: { icon: 'list', label: 'Media' },
+  baja: { icon: 'check', label: 'Baja' },
 }
 
-const statusIndicators: Record<TaskStatus, string> = {
-  idle: '',
-  running: '⏳',
-  done: '✅',
-  error: '❌',
-  hold: '⏸',
+const statusIcons: Record<TaskStatus, string | null> = {
+  idle: null,
+  running: 'glow-pulse',
+  done: 'check-circle',
+  error: 'x-circle',
+  hold: 'pause',
 }
 
 export default function KanbanCard({ task, agents, highlightAgentId, columnId, onExecute, onCancel, onOpenChat }: Props) {
@@ -61,14 +62,20 @@ export default function KanbanCard({ task, agents, highlightAgentId, columnId, o
   return (
     <div className={`card${isHighlighted ? ' card-highlighted' : ''}${isRunning ? ' card-running' : ''}${hasChat ? ' card-clickable' : ''}`} draggable onDragStart={handleDragStart} onClick={handleClick}>
       <div className="card-title">
-        {task.executionStatus && statusIndicators[task.executionStatus] && (
-          <span className="card-status-indicator">{statusIndicators[task.executionStatus]} </span>
+        {task.executionStatus && statusIcons[task.executionStatus] && (
+          <span className="card-status-indicator">
+            <Icon name={statusIcons[task.executionStatus]!} size={14} />{' '}
+          </span>
         )}
         {task.title}
-        {hasChat && <span className="card-chat-badge" title="Ver chat">💬</span>}
+        {hasChat && <span className="card-chat-badge" title="Ver chat"><Icon name="chat" size={12} /></span>}
       </div>
       {task.description && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{task.description}</div>}
-      {task.holdReason && <div className="card-hold-reason">⏸ {task.holdReason}</div>}
+      {task.holdReason && (
+        <div className="card-hold-reason">
+          <Icon name="pause" size={12} /> {task.holdReason}
+        </div>
+      )}
 
       {/* Mini-streaming output preview */}
       {isRunning && task.outputPreview && (
@@ -78,25 +85,27 @@ export default function KanbanCard({ task, agents, highlightAgentId, columnId, o
       )}
 
       <div className="card-footer">
-        <span className={`card-priority priority-${task.priority}`}>{priorityLabels[task.priority]}</span>
+        <span className={`card-priority priority-${task.priority}`}>
+          <Icon name={priorityLabels[task.priority].icon} size={12} /> {priorityLabels[task.priority].label}
+        </span>
         <span style={{ flex: 1 }} />
 
         {/* Execute / Cancel buttons */}
         {canExecute && (
           <button className="card-action-btn card-execute-btn" onClick={handleExecute} title="Ejecutar tarea">
-            ▶
+            <Icon name="play" size={14} />
           </button>
         )}
         {isRunning && (
           <button className="card-action-btn card-cancel-btn" onClick={handleCancel} title="Cancelar ejecución">
-            ⏹
+            <Icon name="pause" size={14} />
           </button>
         )}
 
         {taskAgents.length > 0 && (
           <div className="card-agents">
             {taskAgents.map((agent) => (
-              <div key={agent.id} className="card-agent-avatar" title={agent.name}>
+              <div key={agent.id} className={`card-agent-avatar${isRunning ? ' avatar-busy' : ''}`} title={agent.name}>
                 <div style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {getPixelAvatar(agent.avatar)}
                 </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAgents } from '../context/AgentContext'
 import { getPixelAvatar } from './PixelAvatar'
+import Icon from './Icon'
 import { AVATAR_POOL } from '../utils/avatarPool'
 import { generateAgentName } from '../utils/nameGenerator'
 import { randomAvatar } from '../utils/randomAvatar'
@@ -11,14 +12,14 @@ interface Props {
 }
 
 const modes: { value: AgentMode; label: string }[] = [
-  { value: 'plan', label: '📐 Plan' },
-  { value: 'executor', label: '⚡ Executor' },
-  { value: 'advisor', label: '💡 Advisor' },
+  { value: 'plan', label: 'Plan' },
+  { value: 'executor', label: 'Executor' },
+  { value: 'advisor', label: 'Advisor' },
 ]
 
 const executors: { value: AgentExecutor; label: string }[] = [
-  { value: 'opencode', label: '🔧 OpenCode' },
-  { value: 'kiro-cli', label: '🚀 Kiro CLI' },
+  { value: 'opencode', label: 'OpenCode' },
+  { value: 'kiro-cli', label: 'Kiro CLI' },
 ]
 
 export default function CreateAgentModal({ onClose }: Props) {
@@ -115,7 +116,7 @@ export default function CreateAgentModal({ onClose }: Props) {
       <div className="modal modal-wide" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Agregar agente</h2>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose}><Icon name="close" size={14} /></button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-two-col">
@@ -205,7 +206,7 @@ export default function CreateAgentModal({ onClose }: Props) {
                   onClick={handleGenerateAgent}
                   disabled={generating || !description.trim()}
                 >
-                  {generating ? '⏳ Generando...' : '🤖 Generar y crear agente'}
+                  {generating ? 'Generando...' : 'Generar y crear agente'}
                 </button>
               </fieldset>
             </div>

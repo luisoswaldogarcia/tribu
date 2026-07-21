@@ -21,7 +21,7 @@ describe('KanbanCard', () => {
     render(<KanbanCard task={task} agents={agents} />)
     expect(screen.getByText('Test task')).toBeInTheDocument()
     expect(screen.getByText('A description')).toBeInTheDocument()
-    expect(screen.getByText('🔥 Alta')).toBeInTheDocument()
+    expect(screen.getByText('Alta')).toBeInTheDocument()
   })
 
   it('renders assigned agents without execution controls', () => {
@@ -50,7 +50,7 @@ describe('KanbanCard', () => {
   it('renders holdReason when present', () => {
     const heldTask: Task = { ...task, holdReason: 'Waiting for API keys' }
     render(<KanbanCard task={heldTask} agents={agents} />)
-    expect(screen.getByText('⏸ Waiting for API keys')).toBeInTheDocument()
+    expect(screen.getByText('Waiting for API keys')).toBeInTheDocument()
   })
 
   it('does not render holdReason when absent', () => {

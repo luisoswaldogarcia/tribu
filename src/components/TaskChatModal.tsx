@@ -2,6 +2,7 @@ import { useEffect, useRef, useMemo } from 'react'
 import { AnsiUp } from 'ansi_up'
 import type { Agent, ChatMessage, Task, TaskStatus } from '../types'
 import { getPixelAvatar } from './PixelAvatar'
+import Icon from './Icon'
 
 interface Props {
   task: Task
@@ -11,11 +12,11 @@ interface Props {
 }
 
 const statusLabels: Record<TaskStatus, { icon: string; label: string }> = {
-  idle: { icon: '⚪', label: 'Inactiva' },
-  running: { icon: '⏳', label: 'Ejecutando' },
-  done: { icon: '✅', label: 'Completada' },
-  error: { icon: '❌', label: 'Error' },
-  hold: { icon: '⏸', label: 'Esperando input' },
+  idle: { icon: 'clock', label: 'Inactiva' },
+  running: { icon: 'glow-pulse', label: 'Ejecutando' },
+  done: { icon: 'check-circle', label: 'Completada' },
+  error: { icon: 'x-circle', label: 'Error' },
+  hold: { icon: 'pause', label: 'Esperando input' },
 }
 
 function formatTime(timestamp: string): string {
@@ -60,12 +61,12 @@ export default function TaskChatModal({ task, agents, onClose, onSendInput }: Pr
             <div>
               <h2>{task.title}</h2>
               <span className="chat-status">
-                {statusInfo.icon} {statusInfo.label}
+                <Icon name={statusInfo.icon} size={14} /> {statusInfo.label}
                 {taskAgent && <span className="chat-agent-name"> — {taskAgent.name}</span>}
               </span>
             </div>
           </div>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose}><Icon name="close" size={14} /></button>
         </div>
 
         <div className="chat-messages">
@@ -158,7 +159,7 @@ function ChatInput({ taskId, enabled, placeholder, onSend }: { taskId: string; e
         disabled={!enabled}
         title="Enviar (Enter)"
       >
-        ➤
+        <Icon name="send" size={16} />
       </button>
     </div>
   )

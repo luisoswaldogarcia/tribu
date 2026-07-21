@@ -101,7 +101,7 @@ describe('TaskChatModal', () => {
   it('calls onClose when close button clicked', async () => {
     const onClose = vi.fn()
     render(<TaskChatModal task={buildTask()} agents={[mockAgent]} onClose={onClose} onSendInput={vi.fn()} />)
-    screen.getByText('✕').click()
+    document.querySelector('.modal-close')!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(onClose).toHaveBeenCalled()
   })
 

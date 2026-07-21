@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Priority } from '../types'
 import { useAgents } from '../context/AgentContext'
+import Icon from './Icon'
 
 interface Props {
   onClose: () => void
@@ -31,7 +32,7 @@ export default function CreateTaskModal({ onClose, onCreate }: Props) {
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Nueva tarea</h2>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose}><Icon name="close" size={14} /></button>
         </div>
         <form onSubmit={handleSubmit}>
           <label>
@@ -69,7 +70,7 @@ export default function CreateTaskModal({ onClose, onCreate }: Props) {
                 placeholder="/ruta/al/proyecto"
               />
               <button type="button" className="btn-secondary btn-small" onClick={handleSelectDirectory}>
-                📁
+                <Icon name="download" size={14} />
               </button>
             </div>
           </label>

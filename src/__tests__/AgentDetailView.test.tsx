@@ -33,7 +33,7 @@ describe('AgentDetailView', () => {
 
   it('shows status labels for each agent', () => {
     renderView()
-    const activos = screen.getAllByText('🟢 Activo')
+    const activos = screen.getAllByText('Activo')
     expect(activos.length).toBe(3)
   })
 

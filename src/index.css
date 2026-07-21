@@ -13,10 +13,14 @@
   --text-muted: #7a7b93;
   --accent: #6c63ff;
   --accent-light: #8b83ff;
-  --todo-color: #ff6b6b;
+  --todo-color: #a78bfa;
   --wip-color: #ffd93d;
-  --hold-color: #a78bfa;
+  --hold-color: #ff6b6b;
   --done-color: #6bcb77;
+  --status-active: #6bcb77;
+  --status-busy: #ffd93d;
+  --status-waiting: #ff6b6b;
+  --status-inactive: #7a7b93;
   --radius: 10px;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
@@ -653,6 +657,20 @@ header h1 {
   white-space: nowrap;
 }
 
+.agent-status-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.agent-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .agent-detail-actions-cell {
   display: flex;
   gap: 4px;
@@ -797,18 +815,24 @@ header h1 {
   border: 1.5px solid var(--surface);
 }
 
-.status-dot.waiting_input {
-  animation: pulse 1.5s ease-in-out infinite;
+.sidebar-item-avatar.avatar-busy {
+  animation: avatar-bounce 1.2s ease-in-out infinite;
 }
 
-@keyframes pulse {
+.card-agent-avatar.avatar-busy {
+  animation: avatar-bounce 1.2s ease-in-out infinite;
+}
+
+.agent-detail-avatar.avatar-busy {
+  animation: avatar-bounce 1.2s ease-in-out infinite;
+}
+
+@keyframes avatar-bounce {
   0%, 100% {
-    opacity: 1;
-    transform: scale(1);
+    transform: translateY(0);
   }
   50% {
-    opacity: 0.5;
-    transform: scale(1.4);
+    transform: translateY(-2px);
   }
 }
 

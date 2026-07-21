@@ -30,8 +30,8 @@ describe('AgentEditModal', () => {
     renderModal()
     expect(screen.getByDisplayValue('Zeref')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Agente principal')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('⚡ Executor')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('🔧 OpenCode')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Executor')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('OpenCode')).toBeInTheDocument()
   })
 
   it('renders modal title', () => {
@@ -74,9 +74,9 @@ describe('AgentEditModal', () => {
 
   it('renders mode selector with all options', () => {
     renderModal()
-    expect(screen.getByText('📐 Plan')).toBeInTheDocument()
-    expect(screen.getByText('⚡ Executor')).toBeInTheDocument()
-    expect(screen.getByText('💡 Advisor')).toBeInTheDocument()
+    expect(screen.getByText('Plan')).toBeInTheDocument()
+    expect(screen.getByText('Executor')).toBeInTheDocument()
+    expect(screen.getByText('Advisor')).toBeInTheDocument()
   })
 
   it('renders model selector with auto option when no API', () => {

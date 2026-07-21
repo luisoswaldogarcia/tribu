@@ -10,10 +10,10 @@ interface Props {
 }
 
 const statusColors: Record<string, string> = {
-  active: '#22c55e',
-  busy: '#f59e0b',
-  inactive: '#6b7280',
-  waiting_input: '#3b82f6',
+  active: 'var(--status-active)',
+  busy: 'var(--status-busy)',
+  inactive: 'var(--status-inactive)',
+  waiting_input: 'var(--status-waiting)',
 }
 
 const statusLabels: Record<string, string> = {
@@ -31,6 +31,7 @@ const modeLabels: Record<string, string> = {
 
 export default function AgentSidebarItem({ agent, collapsed, taskTitle, selected, onClick }: Props) {
   const dotClass = `status-dot ${agent.status}`
+  const avatarClass = `sidebar-item-avatar${agent.status === 'busy' ? ' avatar-busy' : ''}`
   const tooltipLines = [
     agent.name,
     `Estado: ${statusLabels[agent.status]}`,
@@ -49,7 +50,7 @@ export default function AgentSidebarItem({ agent, collapsed, taskTitle, selected
         type="button"
       >
         <div className="sidebar-item-avatar-wrapper">
-          <div className="sidebar-item-avatar">
+          <div className={avatarClass}>
             {getPixelAvatar(agent.avatar)}
           </div>
           <span className={dotClass} style={{ backgroundColor: statusColors[agent.status] }} />
@@ -66,7 +67,7 @@ export default function AgentSidebarItem({ agent, collapsed, taskTitle, selected
       type="button"
     >
       <div className="sidebar-item-avatar-wrapper">
-        <div className="sidebar-item-avatar">
+        <div className={avatarClass}>
           {getPixelAvatar(agent.avatar)}
         </div>
         <span className={dotClass} style={{ backgroundColor: statusColors[agent.status] }} />

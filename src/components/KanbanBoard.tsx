@@ -54,7 +54,7 @@ function applyEvent(columns: Column[], event: Parameters<typeof eventBus.publish
 }
 
 export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onColumnsChange?: (columns: Column[]) => void; highlightAgentId?: string | null }) {
-  const { agents, setPersistedAgents } = useAgents()
+  const { agents, setPersistedAgents, updateAgent } = useAgents()
   const [columns, setColumns] = useState<Column[]>(initialColumns)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showCreateAgent, setShowCreateAgent] = useState(false)
@@ -134,6 +134,9 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
       return withoutTask.map((col) => col.id === 'wip' ? { ...col, tasks: [...col.tasks, task as Task] } : col)
     })
 
+    // Mark agent as busy
+    updateAgent(agentId, { status: 'busy', currentTaskId: taskId })
+
     const result = await window.electronAPI?.executeTask(taskId, agentId)
     if (!result?.success) {
       window.electronAPI?.notify('❌ Tribu - Error', result?.error || 'Error al ejecutar tarea')
@@ -141,8 +144,10 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
         ...col,
         tasks: col.tasks.map((t) => t.id === taskId ? { ...t, executionStatus: 'error' } : t),
       })))
+      // Release agent on error
+      updateAgent(agentId, { status: 'active', currentTaskId: undefined })
     }
-  }, [])
+  }, [updateAgent])
 
   const handleCancel = useCallback(async (taskId: string) => {
     await window.electronAPI?.cancelTask(taskId)
@@ -178,6 +183,15 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
     })
 
     const unsubFinish = window.electronAPI.onTaskFinished(({ taskId, exitCode, sessionId, log }) => {
+      // Release the agent assigned to this task
+      setColumns((currentCols) => {
+        const taskInCols = currentCols.flatMap((col) => col.tasks).find((t) => t.id === taskId)
+        if (taskInCols && taskInCols.agents.length > 0) {
+          taskInCols.agents.forEach((aid) => updateAgent(aid, { status: 'active', currentTaskId: undefined }))
+        }
+        return currentCols
+      })
+
       setColumns((prev) => {
         let task: Task | undefined
         const withoutTask = prev.map((col) => {
@@ -207,6 +221,15 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
     })
 
     const unsubWaiting = window.electronAPI.onTaskWaitingInput(({ taskId }) => {
+      // Set agent to waiting_input
+      setColumns((currentCols) => {
+        const taskInCols = currentCols.flatMap((col) => col.tasks).find((t) => t.id === taskId)
+        if (taskInCols && taskInCols.agents.length > 0) {
+          taskInCols.agents.forEach((aid) => updateAgent(aid, { status: 'waiting_input' }))
+        }
+        return currentCols
+      })
+
       setColumns((prev) => {
         let task: Task | undefined
         const withoutTask = prev.map((col) => {

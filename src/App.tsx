@@ -3,13 +3,14 @@ import { AgentProvider, useAgents } from './context/AgentContext'
 import KanbanBoard from './components/KanbanBoard'
 import AgentDetailView from './components/AgentDetailView'
 import AgentSidebar from './components/AgentSidebar'
+import Icon from './components/Icon'
 import type { Column } from './types'
 
 function Header({ onToggleAgents }: { onToggleAgents: () => void }) {
   return (
     <header>
-      <button className="header-agent-btn" onClick={onToggleAgents} title="Gestionar agentes">👤</button>
-      <span style={{ fontSize: 24 }}>📋</span>
+      <button className="header-agent-btn" onClick={onToggleAgents} title="Gestionar agentes"><Icon name="robot" size={20} /></button>
+      <Icon name="list" size={24} />
       <h1>tribu</h1>
     </header>
   )
