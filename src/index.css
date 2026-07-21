@@ -15,6 +15,7 @@
   --accent-light: #8b83ff;
   --todo-color: #ff6b6b;
   --wip-color: #ffd93d;
+  --hold-color: #a78bfa;
   --done-color: #6bcb77;
   --radius: 10px;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -813,4 +814,11 @@ header h1 {
 .card-highlighted {
   border-color: var(--accent) !important;
   box-shadow: 0 0 8px rgba(108, 99, 255, 0.4);
+}
+
+.card-hold-reason {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--hold-color);
+  margin-bottom: 8px;
 }

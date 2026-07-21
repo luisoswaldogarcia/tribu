@@ -12,7 +12,7 @@ const agents: Agent[] = [
 ]
 
 const columns: Column[] = [
-  { id: 'wip', title: 'En progreso', tasks: [{ id: 't4', title: 'Implementar login', priority: 'alta', agents: ['a2'] }], color: '#ffd93d' },
+  { id: 'wip', title: 'In Progress', tasks: [{ id: 't4', title: 'Implementar login', priority: 'alta', agents: ['a2'] }], color: '#ffd93d' },
 ]
 
 const mockStorage: Record<string, string> = {}

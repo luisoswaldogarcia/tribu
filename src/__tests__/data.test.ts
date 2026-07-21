@@ -12,15 +12,16 @@ describe('data', () => {
     }
   })
 
-  it('initialColumns has todo, wip, done', () => {
+  it('initialColumns has todo, wip, hold, done', () => {
     const ids = initialColumns.map((column) => column.id)
-    expect(ids).toEqual(expect.arrayContaining(['todo', 'wip', 'done']))
+    expect(ids).toEqual(expect.arrayContaining(['todo', 'wip', 'hold', 'done']))
   })
 
   it('getColumnName returns known names', () => {
-    expect(getColumnName('todo')).toBe('Por hacer')
-    expect(getColumnName('wip')).toBe('En progreso')
-    expect(getColumnName('done')).toBe('Terminado')
+    expect(getColumnName('todo')).toBe('To Do')
+    expect(getColumnName('wip')).toBe('In Progress')
+    expect(getColumnName('hold')).toBe('On Hold')
+    expect(getColumnName('done')).toBe('Done')
   })
 
   it('getColumnName returns id for unknown', () => {

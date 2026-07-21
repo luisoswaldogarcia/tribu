@@ -46,4 +46,15 @@ describe('KanbanCard', () => {
     const { container } = render(<KanbanCard task={task} agents={agents} highlightAgentId={null} />)
     expect(container.querySelector('.card-highlighted')).not.toBeInTheDocument()
   })
+
+  it('renders holdReason when present', () => {
+    const heldTask: Task = { ...task, holdReason: 'Waiting for API keys' }
+    render(<KanbanCard task={heldTask} agents={agents} />)
+    expect(screen.getByText('⏸ Waiting for API keys')).toBeInTheDocument()
+  })
+
+  it('does not render holdReason when absent', () => {
+    const { container } = render(<KanbanCard task={task} agents={agents} />)
+    expect(container.querySelector('.card-hold-reason')).not.toBeInTheDocument()
+  })
 })

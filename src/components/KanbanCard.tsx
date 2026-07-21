@@ -26,6 +26,7 @@ export default function KanbanCard({ task, agents, highlightAgentId }: Props) {
     <div className={`card${isHighlighted ? ' card-highlighted' : ''}`} draggable onDragStart={handleDragStart}>
       <div className="card-title">{task.title}</div>
       {task.description && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{task.description}</div>}
+      {task.holdReason && <div className="card-hold-reason">⏸ {task.holdReason}</div>}
       <div className="card-footer">
         <span className={`card-priority priority-${task.priority}`}>{priorityLabels[task.priority]}</span>
         <span style={{ flex: 1 }} />

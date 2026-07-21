@@ -11,9 +11,10 @@ export const defaultAgents: Agent[] = [
 ]
 
 const columnNames: Record<string, string> = {
-  todo: 'Por hacer',
-  wip: 'En progreso',
-  done: 'Terminado',
+  todo: 'To Do',
+  wip: 'In Progress',
+  hold: 'On Hold',
+  done: 'Done',
 }
 
 export function getColumnName(id: string): string {
@@ -47,7 +48,7 @@ export function normalizeAgents(input: unknown): Agent[] {
 export const initialColumns: Column[] = [
   {
     id: 'todo',
-    title: 'Por hacer',
+    title: 'To Do',
     tasks: [
       { id: 't1', title: 'Diseñar base de datos', description: 'Esquema inicial de tablas', priority: 'alta', agents: ['a1', 'a2'] },
       { id: 't2', title: 'Configurar CI/CD', priority: 'media', agents: ['a3'] },
@@ -57,7 +58,7 @@ export const initialColumns: Column[] = [
   },
   {
     id: 'wip',
-    title: 'En progreso',
+    title: 'In Progress',
     tasks: [
       { id: 't4', title: 'Implementar login', description: 'Autenticación con JWT', priority: 'alta', agents: ['a1'] },
       { id: 't5', title: 'Crear componentes UI', priority: 'alta', agents: ['a2', 'a3'] },
@@ -65,8 +66,14 @@ export const initialColumns: Column[] = [
     color: '#ffd93d',
   },
   {
+    id: 'hold',
+    title: 'On Hold',
+    tasks: [],
+    color: '#a78bfa',
+  },
+  {
     id: 'done',
-    title: 'Terminado',
+    title: 'Done',
     tasks: [{ id: 't6', title: 'Repo inicial', priority: 'media', agents: ['a1'] }],
     color: '#6bcb77',
   },

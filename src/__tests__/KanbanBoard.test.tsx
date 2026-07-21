@@ -14,11 +14,12 @@ afterEach(() => {
 })
 
 describe('KanbanBoard', () => {
-  it('renders three columns', () => {
+  it('renders four columns', () => {
     renderWithProviders(<KanbanBoard />)
-    expect(screen.getByText('Por hacer')).toBeInTheDocument()
-    expect(screen.getByText('En progreso')).toBeInTheDocument()
-    expect(screen.getByText('Terminado')).toBeInTheDocument()
+    expect(screen.getByText('To Do')).toBeInTheDocument()
+    expect(screen.getByText('In Progress')).toBeInTheDocument()
+    expect(screen.getByText('On Hold')).toBeInTheDocument()
+    expect(screen.getByText('Done')).toBeInTheDocument()
   })
 
   it('renders only base Kanban actions', () => {

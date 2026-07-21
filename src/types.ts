@@ -24,6 +24,7 @@ export interface Task {
   description?: string
   priority: Priority
   agents: string[]
+  holdReason?: string
 }
 
 export interface Column {

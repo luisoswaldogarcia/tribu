@@ -89,10 +89,10 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
     const movedTask = sourceColumn?.tasks.find((task) => task.id === taskId)
     if (!sourceColumn || !movedTask || sourceColumn.id === targetColumnId) return
 
-    const agentName = agents.find((agent) => movedTask.agents.includes(agent.id))?.name || 'Alguien'
+    const agentName = agents.find((agent) => movedTask.agents.includes(agent.id))?.name || 'Someone'
     window.electronAPI?.notify(
-      '🔄 Tribu - Tarea movida',
-      `${agentName} movió "${movedTask.title}" de "${getColumnName(sourceColumn.id)}" a "${getColumnName(targetColumnId)}"`,
+      '🔄 Tribu - Task moved',
+      `${agentName} moved "${movedTask.title}" from "${getColumnName(sourceColumn.id)}" to "${getColumnName(targetColumnId)}"`,
     )
     eventBus.publish({
       type: 'task.moved',
@@ -113,8 +113,8 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
     }
     eventBus.publish({ type: 'task.created', task: newTask, timestamp: eventTimestamp() })
     setShowCreateModal(false)
-    const agentName = agents.find((agent) => agent.id === agentId)?.name || 'Sin agente'
-    window.electronAPI?.notify('📋 Tribu - Nueva tarea', `${agentName} creó "${title}" en Por hacer`)
+    const agentName = agents.find((agent) => agent.id === agentId)?.name || 'Unassigned'
+    window.electronAPI?.notify('📋 Tribu - New task', `${agentName} created "${title}" in To Do`)
   }
 
   if (!loaded && window.electronAPI) return null

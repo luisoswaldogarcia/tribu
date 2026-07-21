@@ -6,7 +6,7 @@ import { AgentProvider } from '../context/AgentContext'
 import type { Column } from '../types'
 
 const columns: Column[] = [
-  { id: 'wip', title: 'En progreso', tasks: [{ id: 't4', title: 'Implementar login', priority: 'alta', agents: ['a1'] }], color: '#ffd93d' },
+  { id: 'wip', title: 'In Progress', tasks: [{ id: 't4', title: 'Implementar login', priority: 'alta', agents: ['a1'] }], color: '#ffd93d' },
 ]
 
 function renderView(props?: { onClose?: () => void }) {
