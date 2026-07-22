@@ -8,7 +8,7 @@ describe('data', () => {
       expect(agent.name).toBeTruthy()
       expect(agent.avatar).toBeTruthy()
       expect(agent.status).toMatch(/^(active|inactive|busy|waiting_input)$/)
-      expect(agent.defaultMode).toMatch(/^(plan|executor|advisor)$/)
+      expect(agent.defaultMode).toMatch(/^(plan|executor|advisor|orchestrator)$/)
     }
   })
 
@@ -49,6 +49,12 @@ describe('data', () => {
     }
     const result = normalizeAgents([full])
     expect(result).toEqual([full])
+  })
+
+  it('accepts orchestrator as a valid mode', () => {
+    const result = normalizeAgents([{ id: 'a1', name: 'Orchestrator', avatar: '🎯', defaultMode: 'orchestrator', executor: 'opencode' }])
+    expect(result).toHaveLength(1)
+    expect(result[0].defaultMode).toBe('orchestrator')
   })
 
   it('ignores invalid status and mode values — falls back to defaults', () => {
@@ -117,6 +123,38 @@ describe('normalizeTasks', () => {
     expect(result[0]).not.toHaveProperty('sessionId')
     expect(result[0]).not.toHaveProperty('messages')
     expect(result[0]).not.toHaveProperty('executionStatus')
+    expect(result[0]).not.toHaveProperty('parentId')
+    expect(result[0]).not.toHaveProperty('context')
+  })
+
+  it('preserves parentId and context when present', () => {
+    const input = [{
+      id: 't2',
+      title: 'Subtask',
+      priority: 'alta',
+      agents: ['a1'],
+      parentId: 't1',
+      context: 'Part of larger orchestration',
+    }]
+    const result = normalizeTasks(input)
+    expect(result).toHaveLength(1)
+    expect(result[0].parentId).toBe('t1')
+    expect(result[0].context).toBe('Part of larger orchestration')
+  })
+
+  it('ignores empty parentId and context strings', () => {
+    const input = [{
+      id: 't3',
+      title: 'No context',
+      priority: 'media',
+      agents: [],
+      parentId: '',
+      context: '',
+    }]
+    const result = normalizeTasks(input)
+    expect(result).toHaveLength(1)
+    expect(result[0]).not.toHaveProperty('parentId')
+    expect(result[0]).not.toHaveProperty('context')
   })
 
   it('preserves structured messages when present', () => {

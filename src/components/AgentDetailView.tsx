@@ -19,25 +19,20 @@ const statusLabels: Record<string, string> = {
 }
 
 const statusColors: Record<string, string> = {
-  active: 'var(--status-active)',
-  inactive: 'var(--status-inactive)',
-  busy: 'var(--status-busy)',
-  waiting_input: 'var(--status-waiting)',
-}
-
-const modeIcons: Record<string, string> = {
-  plan: 'list',
-  executor: 'spark-burst',
-  advisor: 'info-circle',
+  plan: 'Plan',
+  executor: 'Executor',
+  advisor: 'Advisor',
+  orchestrator: 'Orchestrator',
 }
 
 const modeLabels: Record<string, string> = {
   plan: 'Plan',
   executor: 'Executor',
   advisor: 'Advisor',
+  orchestrator: 'Orchestrator',
 }
 
-const modeOptions: AgentMode[] = ['plan', 'executor', 'advisor']
+const modeOptions: AgentMode[] = ['plan', 'executor', 'advisor', 'orchestrator']
 
 export default function AgentDetailView({ onClose, columns }: Props) {
   const { agents, removeAgent, toggleAgentStatus, duplicateAgent, setAgentMode } = useAgents()
@@ -82,6 +77,7 @@ export default function AgentDetailView({ onClose, columns }: Props) {
                   <td className="agent-detail-name-cell">
                     <span className={`agent-detail-avatar${agent.status === 'busy' ? ' avatar-busy' : ''}`}>{getPixelAvatar(agent.avatar)}</span>
                     <strong>{agent.name}</strong>
+                    {agent.defaultMode === 'orchestrator' && <span className="agent-orchestrator-badge">Orchestrator — solo delega tareas</span>}
                   </td>
                   <td>
                     <span className="agent-status-label">

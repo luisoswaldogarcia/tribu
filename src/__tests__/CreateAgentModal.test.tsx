@@ -101,6 +101,17 @@ describe('CreateAgentModal', () => {
     expect(screen.getByText('Advisor')).toBeInTheDocument()
   })
 
+  it('shows orchestrator option in mode select', async () => {
+    renderModal()
+    const modeSelect = screen.getByDisplayValue('Executor')
+    expect(modeSelect).toBeInTheDocument()
+    // Verify orchestrator option exists in the select
+    const options = modeSelect.querySelectorAll('option')
+    const orchestratorOption = Array.from(options).find((o) => o.value === 'orchestrator')
+    expect(orchestratorOption).toBeDefined()
+    expect(orchestratorOption!.textContent).toBe('Orchestrator')
+  })
+
   it('renders all avatar options from pool', () => {
     renderModal()
     const avatarButtons = document.querySelectorAll('.avatar-option')

@@ -4,8 +4,8 @@ import KanbanCard from '../components/KanbanCard'
 import type { Task, Agent } from '../types'
 
 const agents: Agent[] = [
-  { id: 'a1', name: 'Zeref', avatar: '🧙', status: 'active', defaultMode: 'executor' },
-  { id: 'a2', name: 'PixelBot', avatar: '🤖', status: 'active', defaultMode: 'executor' },
+  { id: 'a1', name: 'Zeref', avatar: '🧙', status: 'active', defaultMode: 'executor', executor: 'opencode' },
+  { id: 'a2', name: 'PixelBot', avatar: '🤖', status: 'active', defaultMode: 'executor', executor: 'opencode' },
 ]
 
 const task: Task = {
@@ -56,5 +56,16 @@ describe('KanbanCard', () => {
   it('does not render holdReason when absent', () => {
     const { container } = render(<KanbanCard task={task} agents={agents} />)
     expect(container.querySelector('.card-hold-reason')).not.toBeInTheDocument()
+  })
+
+  it('shows subtask badge when task has parentId', () => {
+    const subtask: Task = { ...task, parentId: 'parent-1' }
+    render(<KanbanCard task={subtask} agents={agents} />)
+    expect(screen.getByText('Sub-tarea')).toBeInTheDocument()
+  })
+
+  it('shows subtask progress when subtaskProgress prop is provided', () => {
+    render(<KanbanCard task={task} agents={agents} subtaskProgress={{ completed: 2, total: 5 }} />)
+    expect(screen.getByText('2/5 completadas')).toBeInTheDocument()
   })
 })

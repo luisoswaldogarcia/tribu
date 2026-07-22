@@ -1224,3 +1224,98 @@ header h1 {
 .ansi-italic { font-style: italic; }
 .ansi-underline { text-decoration: underline; }
 .ansi-strikethrough { text-decoration: line-through; }
+
+/* Orchestration: subtask indicators */
+.card-subtask-badge {
+  font-size: 10px;
+  background: var(--accent-purple, #a78bfa);
+  color: white;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-right: 6px;
+  font-weight: 500;
+}
+.card-subtask-progress {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.card-subtask-progress::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-purple, #a78bfa);
+}
+.sidebar-item-orchestrator {
+  border-left: 2px solid var(--accent-purple, #a78bfa);
+}
+.mode-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 4px 0 8px;
+  font-style: italic;
+}
+.orchestrator-badge {
+  font-size: 11px;
+  background: var(--accent-purple, #a78bfa);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+/* Header logout button */
+.header-logout-btn {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.header-logout-btn:hover {
+  color: var(--todo-color);
+  border-color: var(--todo-color);
+  background: rgba(255, 107, 107, 0.1);
+}
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast-enter {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast-exit {
+  opacity: 0;
+  transform: translateX(-50%) translateY(10px);
+}

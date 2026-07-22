@@ -27,6 +27,7 @@ const modeLabels: Record<string, string> = {
   plan: 'Plan',
   executor: 'Executor',
   advisor: 'Advisor',
+  orchestrator: 'Orchestrator',
 }
 
 export default function AgentSidebarItem({ agent, collapsed, taskTitle, selected, onClick }: Props) {
@@ -41,10 +42,12 @@ export default function AgentSidebarItem({ agent, collapsed, taskTitle, selected
   if (taskTitle) tooltipLines.push(`Tarea: ${taskTitle}`)
   const tooltip = tooltipLines.join('\n')
 
+  const orchestratorClass = agent.defaultMode === 'orchestrator' ? ' sidebar-item-orchestrator' : ''
+
   if (collapsed) {
     return (
       <button
-        className={`sidebar-item sidebar-item-collapsed${selected ? ' sidebar-item-selected' : ''}`}
+        className={`sidebar-item sidebar-item-collapsed${selected ? ' sidebar-item-selected' : ''}${orchestratorClass}`}
         onClick={onClick}
         title={tooltip}
         type="button"
@@ -61,7 +64,7 @@ export default function AgentSidebarItem({ agent, collapsed, taskTitle, selected
 
   return (
     <button
-      className={`sidebar-item${selected ? ' sidebar-item-selected' : ''}`}
+      className={`sidebar-item${selected ? ' sidebar-item-selected' : ''}${orchestratorClass}`}
       onClick={onClick}
       title={tooltip}
       type="button"

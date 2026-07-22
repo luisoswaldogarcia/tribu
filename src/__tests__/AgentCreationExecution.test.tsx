@@ -5,6 +5,31 @@ import CreateAgentModal from '../components/CreateAgentModal'
 import { AgentProvider, useAgents } from '../context/AgentContext'
 import type { AgentMode, AgentExecutor } from '../types'
 
+// Helper para crear mock completo de electronAPI
+function createElectronAPIMock(overrides: Partial<typeof window.electronAPI> = {}) {
+  return {
+    notify: vi.fn(),
+    loadBoard: vi.fn().mockResolvedValue(null),
+    saveBoard: vi.fn().mockResolvedValue(true),
+    executeTask: vi.fn().mockResolvedValue({ success: true }),
+    cancelTask: vi.fn().mockResolvedValue(true),
+    sendTaskInput: vi.fn().mockResolvedValue({ success: true }),
+    onTaskOutput: vi.fn().mockReturnValue(vi.fn()),
+    onTaskFinished: vi.fn().mockReturnValue(vi.fn()),
+    onTaskWaitingInput: vi.fn().mockReturnValue(vi.fn()),
+    selectDirectory: vi.fn().mockResolvedValue(null),
+    getModels: vi.fn().mockResolvedValue(['auto', 'claude-sonnet-4']),
+    generateAgentFile: vi.fn().mockResolvedValue({ success: true, path: 'test.md' }),
+    getOrchestrationStatus: vi.fn().mockResolvedValue({ active: false, subtasks: [], pending: [], running: [], completed: [], failed: [] }),
+    onOrchestrationStarted: vi.fn().mockReturnValue(vi.fn()),
+    onSubtaskCreated: vi.fn().mockReturnValue(vi.fn()),
+    onSubtaskFinished: vi.fn().mockReturnValue(vi.fn()),
+    onSubtaskError: vi.fn().mockReturnValue(vi.fn()),
+    onOrchestrationComplete: vi.fn().mockReturnValue(vi.fn()),
+    ...overrides,
+  }
+}
+
 // Helper to capture created agents
 let lastCreatedAgents: ReturnType<typeof useAgents>['agents'] = []
 
@@ -30,6 +55,7 @@ const allModes: { value: AgentMode; label: string }[] = [
   { value: 'plan', label: 'Plan' },
   { value: 'executor', label: 'Executor' },
   { value: 'advisor', label: 'Advisor' },
+  { value: 'orchestrator', label: 'Orchestrator' },
 ]
 
 const allExecutors: { value: AgentExecutor; label: string }[] = [
@@ -85,19 +111,7 @@ describe('CreateAgentModal — generate agent file per executor', () => {
 
   it('calls generateAgentFile with opencode executor', async () => {
     const mockGenerateAgentFile = vi.fn().mockResolvedValue({ success: true, path: '~/.config/opencode/agent/test-agent.md' })
-    window.electronAPI = {
-      notify: vi.fn(),
-      loadBoard: vi.fn().mockResolvedValue(null),
-      saveBoard: vi.fn().mockResolvedValue(true),
-      executeTask: vi.fn().mockResolvedValue({ success: true }),
-      cancelTask: vi.fn().mockResolvedValue(true),
-      onTaskOutput: vi.fn().mockReturnValue(vi.fn()),
-      onTaskFinished: vi.fn().mockReturnValue(vi.fn()),
-      onTaskWaitingInput: vi.fn().mockReturnValue(vi.fn()),
-      selectDirectory: vi.fn().mockResolvedValue(null),
-      getModels: vi.fn().mockResolvedValue(['auto', 'claude-sonnet-4']),
-      generateAgentFile: mockGenerateAgentFile,
-    }
+    window.electronAPI = createElectronAPIMock({ generateAgentFile: mockGenerateAgentFile })
 
     const user = userEvent.setup()
     const onClose = vi.fn()
@@ -139,19 +153,7 @@ describe('CreateAgentModal — generate agent file per executor', () => {
 
   it('calls generateAgentFile with kiro-cli executor', async () => {
     const mockGenerateAgentFile = vi.fn().mockResolvedValue({ success: true, path: 'kiro-advisor' })
-    window.electronAPI = {
-      notify: vi.fn(),
-      loadBoard: vi.fn().mockResolvedValue(null),
-      saveBoard: vi.fn().mockResolvedValue(true),
-      executeTask: vi.fn().mockResolvedValue({ success: true }),
-      cancelTask: vi.fn().mockResolvedValue(true),
-      onTaskOutput: vi.fn().mockReturnValue(vi.fn()),
-      onTaskFinished: vi.fn().mockReturnValue(vi.fn()),
-      onTaskWaitingInput: vi.fn().mockReturnValue(vi.fn()),
-      selectDirectory: vi.fn().mockResolvedValue(null),
-      getModels: vi.fn().mockResolvedValue(['auto', 'claude-sonnet-4']),
-      generateAgentFile: mockGenerateAgentFile,
-    }
+    window.electronAPI = createElectronAPIMock({ generateAgentFile: mockGenerateAgentFile })
 
     const user = userEvent.setup()
     const onClose = vi.fn()
@@ -194,24 +196,100 @@ describe('CreateAgentModal — generate agent file per executor', () => {
     // Cleanup
     window.electronAPI = undefined
   })
+
+  it('creates an orchestrator agent using opencode', async () => {
+    const mockGenerateAgentFile = vi.fn().mockResolvedValue({ success: true, path: '~/.config/opencode/agent/orchestrator.md' })
+    window.electronAPI = createElectronAPIMock({ generateAgentFile: mockGenerateAgentFile })
+
+    const user = userEvent.setup()
+    const onClose = vi.fn()
+    renderModal(onClose)
+
+    // Set name
+    const nameInput = screen.getByPlaceholderText('Nombre del agente')
+    await user.clear(nameInput)
+    await user.type(nameInput, 'Orchestrator-OC')
+
+    // Select mode orchestrator
+    const modeSelect = screen.getByDisplayValue('Executor')
+    await user.selectOptions(modeSelect, 'orchestrator')
+
+    // Type description
+    const descInput = screen.getByPlaceholderText(/Experto en React/)
+    await user.type(descInput, 'Orquestador que descompone tareas en subtareas')
+
+    // Click generate
+    await user.click(screen.getByRole('button', { name: /Generar y crear agente/ }))
+
+    await waitFor(() => {
+      expect(mockGenerateAgentFile).toHaveBeenCalledWith('opencode', 'Orquestador que descompone tareas en subtareas', 'orchestrator')
+    })
+
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalled()
+    })
+
+    const created = lastCreatedAgents.find((a) => a.name === 'Orchestrator-OC')
+    expect(created).toBeDefined()
+    expect(created!.agentFile).toBe('~/.config/opencode/agent/orchestrator.md')
+    expect(created!.executor).toBe('opencode')
+    expect(created!.defaultMode).toBe('orchestrator')
+
+    // Cleanup
+    window.electronAPI = undefined
+  })
+
+  it('creates an orchestrator agent using kiro-cli', async () => {
+    const mockGenerateAgentFile = vi.fn().mockResolvedValue({ success: true, path: 'kiro-orchestrator' })
+    window.electronAPI = createElectronAPIMock({ generateAgentFile: mockGenerateAgentFile })
+
+    const user = userEvent.setup()
+    const onClose = vi.fn()
+    renderModal(onClose)
+
+    // Set name
+    const nameInput = screen.getByPlaceholderText('Nombre del agente')
+    await user.clear(nameInput)
+    await user.type(nameInput, 'Orchestrator-Kiro')
+
+    // Switch executor to kiro-cli
+    const executorSelect = screen.getByDisplayValue('OpenCode')
+    await user.selectOptions(executorSelect, 'kiro-cli')
+
+    // Select mode orchestrator
+    const modeSelect = screen.getByDisplayValue('Executor')
+    await user.selectOptions(modeSelect, 'orchestrator')
+
+    // Type description
+    const descInput = screen.getByPlaceholderText(/Experto en React/)
+    await user.type(descInput, 'Coordinador de equipo que delega tareas')
+
+    // Click generate
+    await user.click(screen.getByRole('button', { name: /Generar y crear agente/ }))
+
+    await waitFor(() => {
+      expect(mockGenerateAgentFile).toHaveBeenCalledWith('kiro-cli', 'Coordinador de equipo que delega tareas', 'orchestrator')
+    })
+
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalled()
+    })
+
+    const created = lastCreatedAgents.find((a) => a.name === 'Orchestrator-Kiro')
+    expect(created).toBeDefined()
+    expect(created!.agentFile).toBe('kiro-orchestrator')
+    expect(created!.executor).toBe('kiro-cli')
+    expect(created!.defaultMode).toBe('orchestrator')
+
+    // Cleanup
+    window.electronAPI = undefined
+  })
 })
 
 describe('CreateAgentModal — execute task per agent type', () => {
   it('executes a task with opencode executor agent', async () => {
     const mockExecuteTask = vi.fn().mockResolvedValue({ success: true })
-    window.electronAPI = {
-      notify: vi.fn(),
-      loadBoard: vi.fn().mockResolvedValue(null),
-      saveBoard: vi.fn().mockResolvedValue(true),
-      executeTask: mockExecuteTask,
-      cancelTask: vi.fn().mockResolvedValue(true),
-      onTaskOutput: vi.fn().mockReturnValue(vi.fn()),
-      onTaskFinished: vi.fn().mockReturnValue(vi.fn()),
-      onTaskWaitingInput: vi.fn().mockReturnValue(vi.fn()),
-      selectDirectory: vi.fn().mockResolvedValue(null),
-      getModels: vi.fn().mockResolvedValue(['auto']),
-      generateAgentFile: vi.fn().mockResolvedValue({ success: true, path: 'test.md' }),
-    }
+    window.electronAPI = createElectronAPIMock({ executeTask: mockExecuteTask })
 
     // This verifies the IPC call shape is correct
     const result = await window.electronAPI!.executeTask('t1', 'a1')
@@ -223,19 +301,7 @@ describe('CreateAgentModal — execute task per agent type', () => {
 
   it('executes a task with kiro-cli executor agent', async () => {
     const mockExecuteTask = vi.fn().mockResolvedValue({ success: true })
-    window.electronAPI = {
-      notify: vi.fn(),
-      loadBoard: vi.fn().mockResolvedValue(null),
-      saveBoard: vi.fn().mockResolvedValue(true),
-      executeTask: mockExecuteTask,
-      cancelTask: vi.fn().mockResolvedValue(true),
-      onTaskOutput: vi.fn().mockReturnValue(vi.fn()),
-      onTaskFinished: vi.fn().mockReturnValue(vi.fn()),
-      onTaskWaitingInput: vi.fn().mockReturnValue(vi.fn()),
-      selectDirectory: vi.fn().mockResolvedValue(null),
-      getModels: vi.fn().mockResolvedValue(['auto']),
-      generateAgentFile: vi.fn().mockResolvedValue({ success: true, path: 'test.json' }),
-    }
+    window.electronAPI = createElectronAPIMock({ executeTask: mockExecuteTask })
 
     const result = await window.electronAPI!.executeTask('t2', 'a2')
     expect(result.success).toBe(true)

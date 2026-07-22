@@ -1,7 +1,7 @@
 import type { Column, Agent, AgentStatus, AgentMode, AgentExecutor, Task, TaskStatus, ChatMessage } from './types'
 
 const validStatuses: AgentStatus[] = ['active', 'inactive', 'busy', 'waiting_input']
-const validModes: AgentMode[] = ['plan', 'executor', 'advisor']
+const validModes: AgentMode[] = ['plan', 'executor', 'advisor', 'orchestrator']
 const validExecutors: AgentExecutor[] = ['opencode', 'kiro-cli']
 const validTaskStatuses: TaskStatus[] = ['idle', 'running', 'done', 'error', 'hold']
 
@@ -62,6 +62,8 @@ export function normalizeTasks(input: unknown): Task[] {
     }
 
     if (typeof raw.description === 'string' && raw.description) task.description = raw.description
+    if (typeof raw.parentId === 'string' && raw.parentId) task.parentId = raw.parentId
+    if (typeof raw.context === 'string' && raw.context) task.context = raw.context
     if (typeof raw.holdReason === 'string' && raw.holdReason) task.holdReason = raw.holdReason
     if (typeof raw.workingDir === 'string' && raw.workingDir) task.workingDir = raw.workingDir
     if (typeof raw.sessionId === 'string' && raw.sessionId) task.sessionId = raw.sessionId

@@ -83,4 +83,16 @@ describe('AgentEditModal', () => {
     renderModal()
     expect(screen.getByText('auto')).toBeInTheDocument()
   })
+
+  it('shows orchestrator option in mode select', async () => {
+    const orchestratorAgent: Agent = {
+      ...agent,
+      defaultMode: 'orchestrator',
+    }
+    renderModal({ agent: orchestratorAgent })
+    // Verify mode is pre-selected to Orchestrator
+    expect(screen.getByDisplayValue('Orchestrator')).toBeInTheDocument()
+    // Verify hint is shown for orchestrator mode
+    expect(screen.getByText(/descompondrá tareas/)).toBeInTheDocument()
+  })
 })

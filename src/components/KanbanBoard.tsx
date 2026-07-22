@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import type { Column, Priority, Task, ChatMessage } from '../types'
 import { initialColumns, getColumnName, normalizeAgents } from '../data'
 import { eventBus, eventTimestamp } from '../events/EventBus'
@@ -252,6 +252,45 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
     }
   }, [])
 
+  // Subscribe to orchestration events — reload board from disk when subtasks are created/finished
+  useEffect(() => {
+    if (!window.electronAPI) return
+
+    const reloadBoard = () => {
+      window.electronAPI!.loadBoard().then((data) => {
+        if (data?.columns) setColumns(data.columns)
+        if (data?.agents) setPersistedAgents(normalizeAgents(data.agents))
+      })
+    }
+
+    const unsubCreated = window.electronAPI.onSubtaskCreated(() => reloadBoard())
+    const unsubSubFinished = window.electronAPI.onSubtaskFinished(() => reloadBoard())
+    const unsubOrchComplete = window.electronAPI.onOrchestrationComplete(() => reloadBoard())
+    const unsubSubError = window.electronAPI.onSubtaskError(() => reloadBoard())
+
+    return () => {
+      unsubCreated()
+      unsubSubFinished()
+      unsubOrchComplete()
+      unsubSubError()
+    }
+  }, [setPersistedAgents])
+
+  // Calculate subtask progress for parent tasks
+  const subtaskProgressMap = useMemo(() => {
+    const allTasks = columns.flatMap((col) => col.tasks)
+    const doneTasks = columns.find((col) => col.id === 'done')?.tasks || []
+    const map: Record<string, { completed: number; total: number }> = {}
+    for (const task of allTasks) {
+      const subtasks = allTasks.filter((t) => t.parentId === task.id)
+      if (subtasks.length > 0) {
+        const completed = subtasks.filter((st) => doneTasks.some((dt) => dt.id === st.id)).length
+        map[task.id] = { completed, total: subtasks.length }
+      }
+    }
+    return map
+  }, [columns])
+
   if (!loaded && window.electronAPI) return null
 
   // Find the task for the chat modal
@@ -308,7 +347,7 @@ export default function KanbanBoard({ onColumnsChange, highlightAgentId }: { onC
   return (
     <>
       <div className="board">
-        {columns.map((column) => <KanbanColumn key={column.id} column={column} agents={agents} onDrop={handleDrop} highlightAgentId={highlightAgentId} onExecute={handleExecute} onCancel={handleCancel} onOpenChat={handleOpenChat} />)}
+        {columns.map((column) => <KanbanColumn key={column.id} column={column} agents={agents} onDrop={handleDrop} highlightAgentId={highlightAgentId} subtaskProgressMap={subtaskProgressMap} onExecute={handleExecute} onCancel={handleCancel} onOpenChat={handleOpenChat} />)}
       </div>
       <div className="fab-group">
         <button className="fab fab-agent" onClick={() => setShowCreateAgent(true)} title="Agregar agente">👤</button>

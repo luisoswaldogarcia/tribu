@@ -2,7 +2,7 @@ export type Priority = 'alta' | 'media' | 'baja'
 
 export type AgentStatus = 'active' | 'inactive' | 'busy' | 'waiting_input'
 
-export type AgentMode = 'plan' | 'executor' | 'advisor'
+export type AgentMode = 'plan' | 'executor' | 'advisor' | 'orchestrator'
 
 export type AgentExecutor = 'opencode' | 'kiro-cli'
 
@@ -33,6 +33,8 @@ export interface Task {
   description?: string
   priority: Priority
   agents: string[]
+  parentId?: string
+  context?: string
   holdReason?: string
   workingDir?: string
   sessionId?: string
@@ -55,6 +57,15 @@ export interface BoardData {
   agents: Agent[]
 }
 
+export interface OrchestrationStatus {
+  active: boolean
+  subtasks: { id: string; title: string; assignedAgentId: string; dependsOn: string[] }[]
+  pending: string[]
+  running: string[]
+  completed: string[]
+  failed: string[]
+}
+
 declare global {
   interface Window {
     electronAPI?: {
@@ -70,6 +81,13 @@ declare global {
       selectDirectory: () => Promise<string | null>
       getModels: (executor: AgentExecutor) => Promise<string[]>
       generateAgentFile: (executor: AgentExecutor, description: string, mode: AgentMode, tools?: string) => Promise<{ success: boolean; path?: string; error?: string }>
+      // Orchestration
+      getOrchestrationStatus: (parentTaskId: string) => Promise<OrchestrationStatus>
+      onOrchestrationStarted: (callback: (data: { parentTaskId: string }) => void) => () => void
+      onSubtaskCreated: (callback: (data: { parentTaskId: string; subtask: Task }) => void) => () => void
+      onSubtaskFinished: (callback: (data: { parentTaskId: string; subtaskId: string }) => void) => () => void
+      onSubtaskError: (callback: (data: { parentTaskId: string; subtaskId: string; error: string }) => void) => () => void
+      onOrchestrationComplete: (callback: (data: { parentTaskId: string }) => void) => () => void
     }
   }
 }

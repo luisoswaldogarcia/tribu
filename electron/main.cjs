@@ -2,10 +2,51 @@ const { app, BrowserWindow, Notification, ipcMain, dialog } = require('electron'
 const path = require('path')
 const fs = require('fs')
 const { ExecutionEngine } = require('./execution.cjs')
+const { buildOrchestratorPrompt, parseOrchestratorResponse, OrchestrationEngine } = require('./orchestrator.cjs')
 
 const isDev = process.env.VITE_DEV_SERVER_URL
 const dataPath = path.join(app.getPath('userData'), 'tribu-data.json')
 const engine = new ExecutionEngine()
+
+// --- Orchestration Engine ---
+const orchestrationEngine = new OrchestrationEngine(engine, {
+  onSubtaskCreated: (parentTaskId, subtask) => {
+    const win = getWindow()
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('subtask-created', { parentTaskId, subtask })
+    }
+  },
+  onSubtaskFinished: (parentTaskId, subtaskId) => {
+    const win = getWindow()
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('subtask-finished', { parentTaskId, subtaskId })
+      win.webContents.send('task-finished', { taskId: subtaskId, exitCode: 0, log: engine.getLog(subtaskId) })
+    }
+  },
+  onOrchestrationComplete: (parentTaskId) => {
+    const win = getWindow()
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('orchestration-complete', { parentTaskId })
+      new Notification({ title: 'Orquestación completada', body: `Todas las sub-tareas han finalizado.` }).show()
+    }
+  },
+  onSubtaskError: (parentTaskId, subtaskId, error) => {
+    const win = getWindow()
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('subtask-error', { parentTaskId, subtaskId, error })
+      new Notification({ title: 'Sub-tarea falló', body: `Error: ${error}` }).show()
+    }
+  },
+  onSubtaskOutput: (parentTaskId, subtaskId, chunk) => {
+    const win = getWindow()
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('task-output', { taskId: subtaskId, chunk })
+    }
+  },
+  saveBoard: (data) => {
+    saveData(data)
+  },
+})
 
 process.on('uncaughtException', (error) => {
   console.error('UNCAUGHT EXCEPTION:', error)
@@ -15,7 +56,7 @@ process.on('unhandledRejection', (reason) => {
 })
 
 const VALID_STATUSES = ['active', 'inactive', 'busy', 'waiting_input']
-const VALID_MODES = ['plan', 'executor', 'advisor']
+const VALID_MODES = ['plan', 'executor', 'advisor', 'orchestrator']
 const VALID_EXECUTORS = ['opencode', 'kiro-cli']
 const VALID_TASK_STATUSES = ['idle', 'running', 'done', 'error', 'hold']
 
@@ -31,6 +72,8 @@ function sanitizeTask(task) {
   }
 
   if (typeof task.description === 'string' && task.description) sanitized.description = task.description
+  if (typeof task.parentId === 'string' && task.parentId) sanitized.parentId = task.parentId
+  if (typeof task.context === 'string' && task.context) sanitized.context = task.context
   if (typeof task.holdReason === 'string' && task.holdReason) sanitized.holdReason = task.holdReason
   if (typeof task.workingDir === 'string' && task.workingDir) sanitized.workingDir = task.workingDir
   if (typeof task.sessionId === 'string' && task.sessionId) sanitized.sessionId = task.sessionId
@@ -186,9 +229,19 @@ ipcMain.handle('execute-task', async (_event, taskId, agentId) => {
     // Check if task is already running
     if (engine.isRunning(taskId)) return { success: false, error: 'Task is already running' }
 
+    // --- ORCHESTRATOR FLOW ---
+    if (agent.defaultMode === 'orchestrator') {
+      return executeOrchestration(taskId, agent, task, boardData)
+    }
+
+    // --- NORMAL EXECUTION FLOW ---
     // Build prompt from task
     let prompt = task.title
     if (task.description) prompt += `\n\n${task.description}`
+
+    // Inject agent context + task context
+    if (agent.context) prompt = `[Contexto del agente]\n${agent.context}\n\n${prompt}`
+    if (task.context) prompt = `[Contexto de la tarea]\n${task.context}\n\n${prompt}`
 
     // If there's accumulated context from previous runs, include it
     if (task.log) {
@@ -242,6 +295,105 @@ ipcMain.handle('execute-task', async (_event, taskId, agentId) => {
   } catch (err) {
     return { success: false, error: err.message }
   }
+})
+
+/**
+ * Executes the orchestration flow for an orchestrator agent.
+ * Spawns the orchestrator CLI to decompose the task, parses the response,
+ * and delegates subtasks to specialized agents.
+ */
+async function executeOrchestration(taskId, orchestratorAgent, task, boardData) {
+  const win = getWindow()
+
+  // Notify UI that orchestration has started
+  if (win && !win.isDestroyed()) {
+    win.webContents.send('orchestration-started', { parentTaskId: taskId })
+  }
+
+  // Filter available agents (non-orchestrator, non-busy)
+  const availableAgents = boardData.agents.filter(
+    (a) => a.defaultMode !== 'orchestrator' && a.id !== orchestratorAgent.id
+  )
+
+  if (availableAgents.length === 0) {
+    return { success: false, error: 'No hay agentes especializados disponibles para asignar sub-tareas.' }
+  }
+
+  // Build orchestrator prompt
+  const prompt = buildOrchestratorPrompt(task, boardData.agents)
+
+  // Determine working directory
+  const cwd = task.workingDir || process.cwd()
+  if (!fs.existsSync(cwd)) {
+    return { success: false, error: `Working directory does not exist: ${cwd}` }
+  }
+
+  // Execute orchestrator CLI
+  const handle = engine.execute({
+    taskId: `orch_${taskId}`,
+    executor: orchestratorAgent.executor,
+    prompt,
+    cwd,
+    model: orchestratorAgent.model,
+    agentFile: orchestratorAgent.agentFile,
+  })
+
+  // Stream orchestrator output to renderer
+  handle.onOutput((chunk) => {
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('task-output', { taskId, chunk })
+    }
+  })
+
+  // Handle orchestrator finish
+  handle.onFinish(async ({ exitCode, log }) => {
+    if (exitCode !== 0) {
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('task-finished', { taskId, exitCode, log })
+        new Notification({ title: 'Orquestación falló', body: `El orquestador terminó con código ${exitCode}` }).show()
+      }
+      return
+    }
+
+    // Parse orchestrator response
+    const result = parseOrchestratorResponse(log, availableAgents, taskId)
+
+    if (!result.success) {
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('task-finished', {
+          taskId,
+          exitCode: 1,
+          log: `${log}\n\n[ERROR] No se pudieron parsear las sub-tareas: ${result.error}`,
+        })
+      }
+      return
+    }
+
+    // Reload fresh board data for orchestration
+    const freshBoardData = loadData()
+    if (!freshBoardData) {
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('task-finished', { taskId, exitCode: 1, log: `${log}\n\n[ERROR] No se pudo cargar el tablero.` })
+      }
+      return
+    }
+
+    // Start orchestration (create subtasks, schedule execution)
+    try {
+      await orchestrationEngine.orchestrate(taskId, result.subtasks, freshBoardData.agents, freshBoardData)
+    } catch (orchErr) {
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('task-finished', { taskId, exitCode: 1, log: `${log}\n\n[ERROR] Orquestación falló: ${orchErr.message}` })
+      }
+    }
+  })
+
+  return { success: true }
+}
+
+// --- IPC: Orchestration status ---
+ipcMain.handle('get-orchestration-status', async (_event, parentTaskId) => {
+  return orchestrationEngine.getStatus(parentTaskId)
 })
 
 ipcMain.handle('cancel-task', async (_event, taskId) => {

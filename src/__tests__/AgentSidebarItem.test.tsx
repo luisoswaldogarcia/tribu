@@ -11,6 +11,7 @@ const baseAgent: Agent = {
   status: 'active',
   defaultMode: 'executor',
   model: 'claude',
+  executor: 'opencode',
 }
 
 describe('AgentSidebarItem', () => {
@@ -99,5 +100,16 @@ describe('AgentSidebarItem', () => {
     const { container } = render(<AgentSidebarItem agent={baseAgent} collapsed={true} selected={false} onClick={vi.fn()} />)
     const item = container.querySelector('.sidebar-item-collapsed')
     expect(item).toBeInTheDocument()
+  })
+
+  it('shows orchestrator mode label and css class', () => {
+    const orchestratorAgent: Agent = { ...baseAgent, defaultMode: 'orchestrator' }
+    const { container } = render(<AgentSidebarItem agent={orchestratorAgent} collapsed={false} selected={false} onClick={vi.fn()} />)
+    // Verify the orchestrator CSS class is applied
+    const item = container.querySelector('.sidebar-item-orchestrator')
+    expect(item).toBeInTheDocument()
+    // Verify the tooltip contains Orchestrator mode label
+    const button = screen.getByRole('button')
+    expect(button.title).toContain('Orchestrator')
   })
 })

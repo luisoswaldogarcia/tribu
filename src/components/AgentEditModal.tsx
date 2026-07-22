@@ -10,10 +10,11 @@ interface Props {
   onClose: () => void
 }
 
-const modes: { value: AgentMode; label: string }[] = [
-  { value: 'plan', label: 'Plan' },
-  { value: 'executor', label: 'Executor' },
-  { value: 'advisor', label: 'Advisor' },
+const modes: { value: AgentMode; label: string; description?: string }[] = [
+  { value: 'plan', label: 'Plan', description: 'Genera planes y documentos' },
+  { value: 'executor', label: 'Executor', description: 'Ejecuta tareas directamente' },
+  { value: 'advisor', label: 'Advisor', description: 'Asesora sin ejecutar' },
+  { value: 'orchestrator', label: 'Orchestrator', description: 'Descompone y delega tareas a otros agentes' },
 ]
 
 const executors: { value: AgentExecutor; label: string }[] = [
@@ -120,6 +121,9 @@ export default function AgentEditModal({ agent, onClose }: Props) {
               ))}
             </select>
           </label>
+          {defaultMode === 'orchestrator' && (
+            <p className="mode-hint">Este agente descompondrá tareas y las delegará a agentes especializados. No ejecuta directamente.</p>
+          )}
           <label>
             Modelo
             <select value={model} onChange={(e) => setModel(e.target.value)} disabled={loadingModels}>

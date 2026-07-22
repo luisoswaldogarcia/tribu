@@ -7,12 +7,13 @@ interface Props {
   agents: Agent[]
   onDrop: (taskId: string, columnId: string) => void
   highlightAgentId?: string | null
+  subtaskProgressMap?: Record<string, { completed: number; total: number }>
   onExecute?: (taskId: string, agentId: string) => void
   onCancel?: (taskId: string) => void
   onOpenChat?: (taskId: string) => void
 }
 
-export default function KanbanColumn({ column, agents, onDrop, highlightAgentId, onExecute, onCancel, onOpenChat }: Props) {
+export default function KanbanColumn({ column, agents, onDrop, highlightAgentId, subtaskProgressMap, onExecute, onCancel, onOpenChat }: Props) {
   const [isDragOver, setIsDragOver] = useState(false)
 
   const handleDrop = useCallback((event: React.DragEvent) => {
@@ -35,7 +36,7 @@ export default function KanbanColumn({ column, agents, onDrop, highlightAgentId,
         <span className="column-title">{column.title}</span>
         <span className="column-count">{column.tasks.length}</span>
       </div>
-      {column.tasks.map((task) => <KanbanCard key={task.id} task={task} agents={agents} highlightAgentId={highlightAgentId} columnId={column.id} onExecute={onExecute} onCancel={onCancel} onOpenChat={onOpenChat} />)}
+      {column.tasks.map((task) => <KanbanCard key={task.id} task={task} agents={agents} highlightAgentId={highlightAgentId} columnId={column.id} subtaskProgress={subtaskProgressMap?.[task.id]} onExecute={onExecute} onCancel={onCancel} onOpenChat={onOpenChat} />)}
     </div>
   )
 }

@@ -28,6 +28,34 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('task-waiting-input', handler)
   },
 
+  // Orchestration
+  getOrchestrationStatus: (parentTaskId) => ipcRenderer.invoke('get-orchestration-status', parentTaskId),
+  onOrchestrationStarted: (callback) => {
+    const handler = (_event, data) => callback(data)
+    ipcRenderer.on('orchestration-started', handler)
+    return () => ipcRenderer.removeListener('orchestration-started', handler)
+  },
+  onSubtaskCreated: (callback) => {
+    const handler = (_event, data) => callback(data)
+    ipcRenderer.on('subtask-created', handler)
+    return () => ipcRenderer.removeListener('subtask-created', handler)
+  },
+  onSubtaskFinished: (callback) => {
+    const handler = (_event, data) => callback(data)
+    ipcRenderer.on('subtask-finished', handler)
+    return () => ipcRenderer.removeListener('subtask-finished', handler)
+  },
+  onSubtaskError: (callback) => {
+    const handler = (_event, data) => callback(data)
+    ipcRenderer.on('subtask-error', handler)
+    return () => ipcRenderer.removeListener('subtask-error', handler)
+  },
+  onOrchestrationComplete: (callback) => {
+    const handler = (_event, data) => callback(data)
+    ipcRenderer.on('orchestration-complete', handler)
+    return () => ipcRenderer.removeListener('orchestration-complete', handler)
+  },
+
   // Directory selection
   selectDirectory: () => ipcRenderer.invoke('select-directory'),
 

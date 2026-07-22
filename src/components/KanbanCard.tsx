@@ -7,6 +7,7 @@ interface Props {
   agents: Agent[]
   highlightAgentId?: string | null
   columnId?: string
+  subtaskProgress?: { completed: number; total: number }
   onExecute?: (taskId: string, agentId: string) => void
   onCancel?: (taskId: string) => void
   onOpenChat?: (taskId: string) => void
@@ -26,13 +27,13 @@ const statusIcons: Record<TaskStatus, string | null> = {
   hold: 'pause',
 }
 
-export default function KanbanCard({ task, agents, highlightAgentId, columnId, onExecute, onCancel, onOpenChat }: Props) {
+export default function KanbanCard({ task, agents, highlightAgentId, columnId, subtaskProgress, onExecute, onCancel, onOpenChat }: Props) {
   const taskAgents = agents.filter((agent) => task.agents.includes(agent.id))
   const isHighlighted = highlightAgentId ? task.agents.includes(highlightAgentId) : false
   const isRunning = task.executionStatus === 'running'
   const canExecute = columnId === 'todo' && task.agents.length > 0 && !isRunning
   const assignedAgent = taskAgents[0]
-  const hasChat = (task.messages && task.messages.length > 0) || isRunning || task.executionStatus === 'hold' || task.executionStatus === 'done' || task.executionStatus === 'error'
+  const hasChat = (task.messages && task.messages.length > 0) || isRunning || task.executionStatus === 'hold' || task.executionStatus === 'done' || task.executionStatus === 'error' || !!task.parentId
 
   const handleDragStart = (event: React.DragEvent) => {
     event.dataTransfer.setData('text/task-id', task.id)
@@ -62,6 +63,7 @@ export default function KanbanCard({ task, agents, highlightAgentId, columnId, o
   return (
     <div className={`card${isHighlighted ? ' card-highlighted' : ''}${isRunning ? ' card-running' : ''}${hasChat ? ' card-clickable' : ''}`} draggable onDragStart={handleDragStart} onClick={handleClick}>
       <div className="card-title">
+        {task.parentId && <span className="card-subtask-badge">Sub-tarea</span>}
         {task.executionStatus && statusIcons[task.executionStatus] && (
           <span className="card-status-indicator">
             <Icon name={statusIcons[task.executionStatus]!} size={14} />{' '}
@@ -69,6 +71,7 @@ export default function KanbanCard({ task, agents, highlightAgentId, columnId, o
         )}
         {task.title}
         {hasChat && <span className="card-chat-badge" title="Ver chat"><Icon name="chat" size={12} /></span>}
+        {subtaskProgress && <span className="card-subtask-progress">{subtaskProgress.completed}/{subtaskProgress.total} completadas</span>}
       </div>
       {task.description && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{task.description}</div>}
       {task.holdReason && (
